@@ -35,6 +35,15 @@
   .multi input { width:auto; }
   .preview { background:#eef6f2; border:1px solid #0d6e4f55; border-radius:8px; padding:1rem; margin:1rem 0; }
   .preview .big { font-size:2rem; font-weight:700; color:#0d6e4f; }
+  .basmala { text-align:center; margin:.5rem 0 1.25rem; }
+  .basmala .salam { color:#5f5f5f; font-size:1rem; margin-bottom:.6rem; }
+  .basmala .bism { color:#0d6e4f; font-size:1.6rem; font-weight:700; line-height:1.8; }
+  .basmala .dua { color:#0d6e4f; font-size:1.05rem; margin-top:.6rem; }
+  .divider { display:flex; align-items:center; gap:.6rem; color:#0d6e4f; margin:.75rem auto; max-width:280px; }
+  .divider::before, .divider::after { content:""; flex:1; height:1px;
+    background:linear-gradient(to right, transparent, #0d6e4f77, transparent); }
+  .divider span { font-size:1.2rem; }
+  .thanks { text-align:center; color:#0d6e4f; font-weight:600; margin:.75rem 0; font-size:1.1rem; }
   select, input { width:100%; font-size:1rem; font-family:inherit; padding:.55rem .7rem;
     border:1px solid #c9c9c9; border-radius:6px; background:#fff; }
   .kidrow { display:flex; gap:.5rem; align-items:center; margin-top:.4rem; }
@@ -246,7 +255,7 @@ const SECTIONS = [
 ];
 
 const LS_KEY = "spike2a_v03";
-let state = { answers:{}, imp:{}, section:0, timings:{}, enteredAt:Date.now(), startedAt:Date.now(), feedback:{}, started:false, consent:false };
+let state = { answers:{}, imp:{}, section:0, timings:{}, enteredAt:Date.now(), startedAt:Date.now(), feedback:{}, started:false };
 try { const saved = JSON.parse(localStorage.getItem(LS_KEY)); if (saved && confirm("لديك إجابات محفوظة، هل تريد المتابعة من حيث توقفت؟")) state = saved; else localStorage.removeItem(LS_KEY); } catch {}
 
 const app = document.getElementById("app");
@@ -354,7 +363,7 @@ function buildImportControl(){
         }
         state = { answers:data.answers??{}, imp:data.imp??{}, section:0,
           timings:data.timings??{}, enteredAt:Date.now(), startedAt:Date.now(),
-          feedback:data.feedback??{}, started:true, consent:data.consent??true };
+          feedback:data.feedback??{}, started:true };
         save(); render();
         alert("تم استيراد إجاباتك. يمكنك الآن مراجعة أي قسم وتعديله من قائمة التنقل بالأعلى.");
       } catch { alert("تعذر قراءة الملف"); }
@@ -368,13 +377,22 @@ function buildImportControl(){
   return impWrap;
 }
 
-// شاشة الترحيب — طمأنة بشأن الخصوصية + الإرشاد + الموافقة على مشاركة التجربة
+// شاشة الترحيب — سلام وبسملة ودعاء، طمأنة بشأن الخصوصية، إرشاد، وتذكير ودّي بالمشاركة
 function renderWelcome(){
   app.replaceChildren();
+
+  const bas = el("div", "basmala");
+  bas.appendChild(el("div", "salam", "السَّلَامُ عَلَيْكُمْ وَرَحْمَةُ اللَّهِ وَبَرَكَاتُهُ"));
+  bas.appendChild(el("div", "bism", "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ"));
+  const div1 = el("div", "divider"); div1.appendChild(el("span", null, "✿"));
+  bas.appendChild(div1);
+  bas.appendChild(el("div", "dua", "بَارَكَ اللَّهُ فِيكُمْ، وَوَفَّقَكُمْ لِكُلِّ خَيْرٍ"));
+  app.appendChild(bas);
+
   const h1 = el("h1", null, "أهلاً بك ");
   h1.appendChild(el("span", "tag", "نسخة تجريبية"));
   app.appendChild(h1);
-  app.appendChild(el("p", "muted", "تساعدنا بتجربة استبيان زواج للتأكد أنه سهل وواضح. تجربتك ورأيك أهم عندنا من إجاباتك نفسها."));
+  app.appendChild(el("p", "muted", "جزاك الله خيراً على وقتك — تساعدنا بتجربة استبيان زواج للتأكد أنه سهل وواضح. تجربتك ورأيك أهم عندنا من إجاباتك نفسها."));
 
   const safe = el("div", "note");
   safe.textContent =
@@ -389,27 +407,19 @@ function renderWelcome(){
     "ماذا تفعل:\n" +
     "١) املأ الاستبيان (إجابات حقيقية أو تجريبية، المهم تجربتك).\n" +
     "٢) في النهاية اضغط «تنزيل الإجابات».\n" +
-    "٣) أرسل الملف لمن أرسل لك هذا الرابط، مع رأيك في التجربة.\n" +
+    "٣) أرسل الملف لمن أرسل لك هذا الرابط.\n" +
     "يستغرق حوالي ١٠ إلى ١٥ دقيقة، وتُحفظ إجاباتك تلقائياً لتكمل لاحقاً.";
   app.appendChild(steps);
 
-  const cWrap = el("div", "fg");
-  const cLab = el("label");
-  cLab.style.display = "flex"; cLab.style.gap = ".5rem"; cLab.style.alignItems = "flex-start";
-  const cb = el("input"); cb.type = "checkbox"; cb.style.width = "auto"; cb.style.marginTop = ".25rem";
-  cb.checked = !!state.consent;
-  cLab.appendChild(cb);
-  cLab.appendChild(el("span", null, "أوافق على مشاركة إجاباتي وملاحظاتي عن التجربة مع من أرسل لي هذا الاستبيان."));
-  cWrap.appendChild(cLab);
-  app.appendChild(cWrap);
+  // تذكير ودّي — ليس شرطاً ولا مربع موافقة
+  const kind = el("div", "note");
+  kind.textContent = "💚 نرجو منك بلطف: شاركنا رأيك وملاحظاتك عن التجربة في نهاية الاستبيان — فهي أغلى ما نخرج به منك.";
+  app.appendChild(kind);
 
   const nav = el("div", "nav");
   const start = el("button", null, "ابدأ الاستبيان");
-  start.disabled = !cb.checked;
-  cb.addEventListener("change", () => { state.consent = cb.checked; start.disabled = !cb.checked; });
   start.addEventListener("click", () => {
-    if (!cb.checked) return;
-    state.started = true; state.consent = true; state.section = 0;
+    state.started = true; state.section = 0;
     state.enteredAt = Date.now(); save(); render(); window.scrollTo(0,0);
   });
   nav.appendChild(start);
@@ -723,7 +733,6 @@ function collectRows(){
   }
   for (const s of SECTIONS) rows.push(["التوقيت", s.title, String(state.timings[s.id]||0) + " ثانية", ""]);
   for (const k in state.feedback) rows.push(["رأي المستخدم", k, state.feedback[k] ?? "", ""]);
-  rows.push(["الموافقة", "مشاركة التجربة مع المُرسِل", state.consent ? "نعم" : "لا", ""]);
   return rows;
 }
 
@@ -846,6 +855,14 @@ function renderDone(){
   const total = Object.values(state.timings).reduce((a,b)=>a+b, 0);
   app.replaceChildren();
   const box = el("div");
+
+  const bas = el("div", "basmala");
+  bas.appendChild(el("div", "bism", "الْحَمْدُ لِلَّهِ الَّذِي بِنِعْمَتِهِ تَتِمُّ الصَّالِحَاتُ"));
+  const dv = el("div", "divider"); dv.appendChild(el("span", null, "✿"));
+  bas.appendChild(dv);
+  bas.appendChild(el("div", "dua", "جَزَاكُمُ اللَّهُ خَيْرًا عَلَى وَقْتِكُمْ وَكَرَمِكُمْ"));
+  box.appendChild(bas);
+
   box.appendChild(el("h1", null, "اكتمل الاستبيان"));
   box.appendChild(el("p", null, `استغرقت تقريباً: ${Math.round(total/60)} دقيقة`));
   const table = el("table");
@@ -939,6 +956,13 @@ function renderDone(){
   nav.appendChild(expXls);
   box.appendChild(nav);
   box.appendChild(el("p", "muted", "ينزل ملف — أرسله لصاحب التجربة. لا يُرسل أي شيء تلقائياً."));
+
+  const outro = el("div", "basmala");
+  const dv2 = el("div", "divider"); dv2.appendChild(el("span", null, "✿"));
+  outro.appendChild(dv2);
+  outro.appendChild(el("div", "dua", "بَارَكَ اللَّهُ فِيكُمْ، وَوَفَّقَكُمْ لِلْخَيْرِ حَيْثُ كَانَ، وَيَسَّرَ لَكُمْ أُمُورَكُمْ"));
+  box.appendChild(outro);
+
   app.appendChild(box);
 }
 
