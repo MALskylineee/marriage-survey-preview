@@ -246,7 +246,7 @@ const SECTIONS = [
 ];
 
 const LS_KEY = "spike2a_v03";
-let state = { answers:{}, imp:{}, section:0, timings:{}, enteredAt:Date.now(), startedAt:Date.now(), feedback:{} };
+let state = { answers:{}, imp:{}, section:0, timings:{}, enteredAt:Date.now(), startedAt:Date.now(), feedback:{}, started:false, consent:false };
 try { const saved = JSON.parse(localStorage.getItem(LS_KEY)); if (saved && confirm("لديك إجابات محفوظة، هل تريد المتابعة من حيث توقفت؟")) state = saved; else localStorage.removeItem(LS_KEY); } catch {}
 
 const app = document.getElementById("app");
@@ -334,7 +334,92 @@ function buildLabel(h, w){
 
 const RERENDER_ON = new Set(["gender","health","marital","maritalF","kids","kidsCount","education","major","college","workStatus","workStatusF","jobField","finModel","engParty","wedParty","resGov","resCity"]);
 
+// عنصر استيراد قابل لإعادة الاستخدام (شاشة الترحيب وأول قسم)
+function buildImportControl(){
+  const impWrap = el("div", "fg");
+  const impBtn = el("button", "sec", "لدي ملف إجابات سابق (استيراد)");
+  const fileIn = el("input");
+  fileIn.type = "file";
+  fileIn.accept = ".json,application/json";
+  fileIn.style.display = "none";
+  fileIn.addEventListener("change", () => {
+    const file = fileIn.files && fileIn.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const data = JSON.parse(String(reader.result));
+        if (typeof data.version !== "string" || !data.version.startsWith("spike2a")){
+          alert("هذا الملف ليس ملف إجابات صالحاً"); return;
+        }
+        state = { answers:data.answers??{}, imp:data.imp??{}, section:0,
+          timings:data.timings??{}, enteredAt:Date.now(), startedAt:Date.now(),
+          feedback:data.feedback??{}, started:true, consent:data.consent??true };
+        save(); render();
+        alert("تم استيراد إجاباتك. يمكنك الآن مراجعة أي قسم وتعديله من قائمة التنقل بالأعلى.");
+      } catch { alert("تعذر قراءة الملف"); }
+    };
+    reader.readAsText(file);
+  });
+  impBtn.addEventListener("click", () => fileIn.click());
+  impWrap.appendChild(impBtn);
+  impWrap.appendChild(fileIn);
+  impWrap.appendChild(el("div", "help", "أكملت جزءاً على جهاز آخر؟ استورد ملف JSON الذي نزّلته لتكمل من حيث توقفت."));
+  return impWrap;
+}
+
+// شاشة الترحيب — طمأنة بشأن الخصوصية + الإرشاد + الموافقة على مشاركة التجربة
+function renderWelcome(){
+  app.replaceChildren();
+  const h1 = el("h1", null, "أهلاً بك ");
+  h1.appendChild(el("span", "tag", "نسخة تجريبية"));
+  app.appendChild(h1);
+  app.appendChild(el("p", "muted", "تساعدنا بتجربة استبيان زواج للتأكد أنه سهل وواضح. تجربتك ورأيك أهم عندنا من إجاباتك نفسها."));
+
+  const safe = el("div", "note");
+  safe.textContent =
+    "🔒 خصوصيتك مضمونة تماماً:\n" +
+    "• كل إجاباتك تُحفظ على جهازك أنت فقط.\n" +
+    "• لا تُرسل أي معلومة تلقائياً لأي خادم أو أي جهة.\n" +
+    "• لا يصلنا منك أي شيء إطلاقاً إلا إذا اخترت بنفسك تنزيل ملف إجاباتك وإرساله.";
+  app.appendChild(safe);
+
+  const steps = el("div", "note");
+  steps.textContent =
+    "ماذا تفعل:\n" +
+    "١) املأ الاستبيان (إجابات حقيقية أو تجريبية، المهم تجربتك).\n" +
+    "٢) في النهاية اضغط «تنزيل الإجابات».\n" +
+    "٣) أرسل الملف لمن أرسل لك هذا الرابط، مع رأيك في التجربة.\n" +
+    "يستغرق حوالي ١٠ إلى ١٥ دقيقة، وتُحفظ إجاباتك تلقائياً لتكمل لاحقاً.";
+  app.appendChild(steps);
+
+  const cWrap = el("div", "fg");
+  const cLab = el("label");
+  cLab.style.display = "flex"; cLab.style.gap = ".5rem"; cLab.style.alignItems = "flex-start";
+  const cb = el("input"); cb.type = "checkbox"; cb.style.width = "auto"; cb.style.marginTop = ".25rem";
+  cb.checked = !!state.consent;
+  cLab.appendChild(cb);
+  cLab.appendChild(el("span", null, "أوافق على مشاركة إجاباتي وملاحظاتي عن التجربة مع من أرسل لي هذا الاستبيان."));
+  cWrap.appendChild(cLab);
+  app.appendChild(cWrap);
+
+  const nav = el("div", "nav");
+  const start = el("button", null, "ابدأ الاستبيان");
+  start.disabled = !cb.checked;
+  cb.addEventListener("change", () => { state.consent = cb.checked; start.disabled = !cb.checked; });
+  start.addEventListener("click", () => {
+    if (!cb.checked) return;
+    state.started = true; state.consent = true; state.section = 0;
+    state.enteredAt = Date.now(); save(); render(); window.scrollTo(0,0);
+  });
+  nav.appendChild(start);
+  app.appendChild(nav);
+
+  app.appendChild(buildImportControl());
+}
+
 function render(){
+  if (!state.started) return renderWelcome();
   const sec = SECTIONS[state.section];
   if (!sec) return renderDone();
   app.replaceChildren();
@@ -344,8 +429,6 @@ function render(){
   app.appendChild(h1);
   const pctDone = Math.round(state.section / SECTIONS.length * 100);
   app.appendChild(el("p", "muted", `القسم ${state.section+1} من ${SECTIONS.length} — أكملت ${pctDone}٪`));
-  if (state.section === 0)
-    app.appendChild(el("p", "muted", "يستغرق الاستبيان حوالي ١٠ إلى ١٥ دقيقة. تُحفظ إجاباتك تلقائياً ويمكنك المتابعة لاحقاً."));
   const bar = el("div", "bar"); const fill = el("div");
   fill.style.width = pctDone + "%";
   bar.appendChild(fill); app.appendChild(bar);
@@ -370,41 +453,6 @@ function render(){
     });
     navWrap.appendChild(jump);
     app.appendChild(navWrap);
-  }
-
-  // استيراد جلسة سابقة — يظهر في أول قسم فقط لتوفير وقت إعادة الإدخال
-  if (state.section === 0){
-    const impWrap = el("div", "fg");
-    const impBtn = el("button", "sec", "استيراد إجابات محفوظة (ملف JSON)");
-    const fileIn = el("input");
-    fileIn.type = "file";
-    fileIn.accept = ".json,application/json";
-    fileIn.style.display = "none";
-    fileIn.addEventListener("change", () => {
-      const file = fileIn.files && fileIn.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = () => {
-        try {
-          const data = JSON.parse(String(reader.result));
-          if (typeof data.version !== "string" || !data.version.startsWith("spike2a")){
-            alert("هذا الملف ليس ملف إجابات صالحاً"); return;
-          }
-          // نبدأ من أول قسم بعد الاستيراد حتى تتمكن من المراجعة والتعديل
-          state = { answers:data.answers??{}, imp:data.imp??{}, section:0,
-            timings:data.timings??{}, enteredAt:Date.now(), startedAt:Date.now(),
-            feedback:data.feedback??{} };
-          save(); render();
-          alert("تم استيراد إجاباتك. يمكنك الآن مراجعة أي قسم وتعديله من قائمة التنقل بالأعلى.");
-        } catch { alert("تعذر قراءة الملف"); }
-      };
-      reader.readAsText(file);
-    });
-    impBtn.addEventListener("click", () => fileIn.click());
-    impWrap.appendChild(impBtn);
-    impWrap.appendChild(fileIn);
-    impWrap.appendChild(el("div", "help", "أكملت جزءاً في جلسة سابقة على جهاز آخر؟ استورد ملف JSON الذي نزّلته لتكمل من حيث توقفت"));
-    app.appendChild(impWrap);
   }
 
   let dbBox = null;
@@ -675,6 +723,7 @@ function collectRows(){
   }
   for (const s of SECTIONS) rows.push(["التوقيت", s.title, String(state.timings[s.id]||0) + " ثانية", ""]);
   for (const k in state.feedback) rows.push(["رأي المستخدم", k, state.feedback[k] ?? "", ""]);
+  rows.push(["الموافقة", "مشاركة التجربة مع المُرسِل", state.consent ? "نعم" : "لا", ""]);
   return rows;
 }
 
@@ -860,12 +909,22 @@ function renderDone(){
   });
   box.appendChild(reviewBtn);
 
+  box.appendChild(el("h2", null, "أرسل نتيجتك 📥"));
+  const sendGuide = el("div", "note");
+  sendGuide.textContent =
+    "خطوة أخيرة حتى تصلنا تجربتك:\n" +
+    "١) اضغط «تنزيل الإجابات» بالأسفل (اختر إكسل أو JSON، أيهما أسهل لك).\n" +
+    "٢) سيُحفظ ملف على جهازك.\n" +
+    "٣) أرسل هذا الملف لمن أرسل لك الرابط (واتساب أو بريد).\n" +
+    "بدون هذه الخطوة لا يصلنا أي شيء — إجاباتك تبقى على جهازك فقط.";
+  box.appendChild(sendGuide);
+
   const nav = el("div", "nav");
   const expJson = el("button", null, "تنزيل الإجابات (ملف JSON)");
   expJson.addEventListener("click", () => {
     state.feedback = fb; save();
     download("spike2a-result.json", "application/json",
-      JSON.stringify({version:"spike2a-v0.4", exportedAt:new Date().toISOString(), totalSeconds:total, ...state}, null, 2));
+      JSON.stringify({version:"spike2a-v0.6", exportedAt:new Date().toISOString(), totalSeconds:total, ...state}, null, 2));
   });
   const expXls = el("button", "sec", "تنزيل كملف إكسل");
   expXls.addEventListener("click", () => {
