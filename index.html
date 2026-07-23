@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>استبيان الزواج — نسخة تجريبية</title>
+<!-- Track A throwaway (ADR-0006) v0.3 — Mohamed's 2nd review 2026-07-23:
+     single dual-handle sliders (dwarfism-friendly minimums), profile
+     height/weight sliders, expanded districts + "other" free text, kids 7+,
+     missing-field highlighting, RTL Excel export, jewelry/tattoo fields with
+     requirement counterparts (profile<->requirement correlation principle). -->
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { font-size: 16px; }
+  body { background:#fff; color:#1a1a1a; font-family:"Cairo","Tajawal","Segoe UI",Tahoma,sans-serif; }
+  .wrap { max-width: 640px; margin: 0 auto; padding: 1.5rem 1rem 4rem; }
+  h1 { font-size: 1.5rem; margin-bottom: .25rem; }
+  h2 { font-size: 1.2rem; margin: 1rem 0 .5rem; color:#0d6e4f; }
+  .muted { color:#5f5f5f; font-size: 1rem; }
+  .bar { height: 10px; background:#e8e8e8; border-radius:5px; margin: .75rem 0 1.25rem; overflow:hidden; }
+  .bar > div { height:100%; background:#0d6e4f; width:0; transition:width .3s; }
+  .fg { margin-bottom: 1rem; border-radius:6px; padding:.15rem .3rem; }
+  .fg.missing { background:#fdecea; outline:2px solid #e08a84; }
+  label { display:block; font-weight:600; margin-bottom:.3rem; }
+  .help { font-size:.95rem; color:#5f5f5f; margin-bottom:.3rem; }
+  .hint { font-size:.95rem; color:#0d6e4f; margin-top:.3rem; }
+  .info { display:inline-flex; align-items:center; justify-content:center; width:20px; height:20px;
+    border-radius:50%; border:1px solid #0d6e4f; color:#0d6e4f; font-size:.8rem; cursor:pointer;
+    margin-inline-start:.4rem; background:#f4faf7; }
+  .note { background:#f4faf7; border:1px solid #0d6e4f33; border-radius:6px; padding:.5rem .7rem;
+    font-size:.9rem; color:#333; margin:.3rem 0; white-space:pre-line; }
+  .multi { display:flex; flex-wrap:wrap; gap:.5rem; }
+  .multi label { display:inline-flex; align-items:center; gap:.35rem; font-weight:400;
+    border:1px solid #c9c9c9; border-radius:6px; padding:.4rem .7rem; cursor:pointer; margin:0; }
+  .multi input { width:auto; }
+  .preview { background:#eef6f2; border:1px solid #0d6e4f55; border-radius:8px; padding:1rem; margin:1rem 0; }
+  .preview .big { font-size:2rem; font-weight:700; color:#0d6e4f; }
+  select, input { width:100%; font-size:1rem; font-family:inherit; padding:.55rem .7rem;
+    border:1px solid #c9c9c9; border-radius:6px; background:#fff; }
+  .kidrow { display:flex; gap:.5rem; align-items:center; margin-top:.4rem; }
+  .kidrow span { min-width:6.5rem; }
+  /* one visual slider, two handles */
+  .dual { position:relative; height:36px; margin-top:.4rem; }
+  .dual .track { position:absolute; top:16px; right:0; left:0; height:6px; background:#e8e8e8; border-radius:3px; }
+  .dual .fillseg { position:absolute; top:16px; height:6px; background:#0d6e4f; border-radius:3px; }
+  .dual input[type=range] { position:absolute; top:8px; right:0; left:0; width:100%;
+    background:none; border:none; padding:0; pointer-events:none; -webkit-appearance:none; appearance:none; }
+  .dual input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; appearance:none;
+    width:22px; height:22px; border-radius:50%; background:#0d6e4f; border:2px solid #fff;
+    box-shadow:0 0 3px rgba(0,0,0,.4); pointer-events:auto; cursor:grab; }
+  .dual input[type=range]::-moz-range-thumb { width:22px; height:22px; border-radius:50%;
+    background:#0d6e4f; border:2px solid #fff; box-shadow:0 0 3px rgba(0,0,0,.4);
+    pointer-events:auto; cursor:grab; }
+  .single input[type=range] { padding:0; accent-color:#0d6e4f; }
+  .imp { margin-top:.35rem; }
+  .imp select { border-color:#0d6e4f55; background:#f4faf7; }
+  .db { position:sticky; top:0; z-index:5; background:#fff8e6; border:1px solid #e6cc80;
+    border-radius:8px; padding:.5rem .8rem; margin-bottom:1rem; font-size:1rem; }
+  .db.full { background:#fdecea; border-color:#e08a84; }
+  .nav { display:flex; gap:.75rem; margin-top:1.5rem; }
+  button { font-size:1rem; font-family:inherit; padding:.7rem 1.4rem; border:none;
+    border-radius:6px; background:#0d6e4f; color:#fff; cursor:pointer; }
+  button.sec { background:#e8e8e8; color:#1a1a1a; }
+  .error { color:#b3261e; margin-top:.5rem; }
+  table { border-collapse:collapse; margin:.75rem 0; width:100%; }
+  td, th { border:1px solid #ddd; padding:.35rem .6rem; font-size:.95rem; text-align:right; }
+  textarea { width:100%; font-size:1rem; font-family:inherit; padding:.55rem .7rem;
+    border:1px solid #c9c9c9; border-radius:6px; min-height:70px; }
+  .tag { display:inline-block; background:#eef6f2; color:#0d6e4f; border-radius:4px;
+    padding:0 .4rem; font-size:.85rem; }
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<script>
+"use strict";
+/* نسخة تجريبية v0.3 */
+
+const IMP = ["شرط حاسم","أساسي","مفضل","يُستحسن","لا يهم"];
+const DB_CAP = 5, MIN_CRITERIA = 10;
+const OTHER = "أخرى (اكتبها)";
+
+const GOVS_DATA = {"القاهرة":["مدينة نصر","المعادي","مصر الجديدة","التجمع الخامس","التجمع الأول","التجمع الثالث","الشروق","الرحاب","مدينتي","العبور","بدر","عين شمس","المطرية","الزيتون","شبرا","شبرا مصر","حلوان","حدائق حلوان","المرج","وسط البلد","المقطم","السلام","النزهة","شيراتون","الزمالك","جسر السويس","حدائق القبة","العباسية","السيدة زينب","مصر القديمة","المنيل","الساحل","الزاوية الحمراء","الأميرية","عزبة النخل","المعصرة","التبين","15 مايو","القاهرة الجديدة","الأسمرات","روض الفرج","بولاق أبو العلا","غمرة","الوايلي","باب الشعرية","الدرب الأحمر","الخليفة","دار السلام","البساتين","طرة"],"الجيزة":["الدقي","المهندسين","العجوزة","فيصل","الهرم","6 أكتوبر","الشيخ زايد","حدائق الأهرام","حدائق أكتوبر","العمرانية","بولاق الدكرور","الوراق","أرض اللواء","إمبابة","المنيب","بشتيل","الطالبية","المريوطية","صفط اللبن","كرداسة","أوسيم","الحوامدية","البدرشين","العياط","الصف","أطفيح","الواحات البحرية","منشأة القناطر","أبو النمرس"],"الإسكندرية":["المنتزه","المندرة","ميامي","سيدي بشر","فيكتوريا","السيوف","سموحة","لوران","جليم","سان ستيفانو","سيدي جابر","كليوباترا","سبورتنج","الإبراهيمية","محطة الرمل","المنشية","بحري","الأنفوشي","العجمي","الهانوفيل","البيطاش","العامرية","برج العرب","كرموز","محرم بك","العصافرة","أبو قير","المعمورة","الورديان","الدخيلة","مينا البصل","غيط العنب","الحضرة","باكوس","فلمنج","سيدي كرير"],"القليوبية":["بنها","شبرا الخيمة","قليوب","الخانكة","القناطر الخيرية","شبين القناطر","طوخ","العبور","قها","الخصوص","كفر شكر","أبو زعبل"],"الدقهلية":["المنصورة","طلخا","ميت غمر","دكرنس","أجا","شربين","السنبلاوين","بلقاس","المطرية","منية النصر","المنزلة","تمي الأمديد","الجمالية","نبروه","ميت سلسيل","محلة دمنة","جمصة","بني عبيد"],"الشرقية":["الزقازيق","العاشر من رمضان","بلبيس","أبو حماد","فاقوس","منيا القمح","أبو كبير","الحسينية","كفر صقر","أولاد صقر","ديرب نجم","مشتول السوق","الإبراهيمية","ههيا","القرين","القنايات","صان الحجر","الصالحية الجديدة"],"الغربية":["طنطا","المحلة الكبرى","كفر الزيات","زفتى","سمنود","بسيون","قطور","السنطة"],"المنوفية":["شبين الكوم","منوف","أشمون","الباجور","قويسنا","بركة السبع","تلا","السادات","الشهداء"],"البحيرة":["دمنهور","كفر الدوار","رشيد","إدكو","وادي النطرون","أبو حمص","الدلنجات","المحمودية","حوش عيسى","كوم حمادة","أبو المطامير","شبراخيت","إيتاي البارود","بدر","النوبارية الجديدة","الرحمانية"],"كفر الشيخ":["كفر الشيخ","دسوق","بيلا","بلطيم","الحامول","فوه","مطوبس","الرياض","سيدي سالم","قلين","برج البرلس"],"دمياط":["دمياط","رأس البر","فارسكور","الزرقا","كفر سعد","دمياط الجديدة","السرو","ميت أبو غالب","كفر البطيخ","عزبة البرج"],"بورسعيد":["بورفؤاد","حي الشرق","حي العرب","حي المناخ","حي الضواحي","حي الزهور","حي الجنوب"],"الإسماعيلية":["الإسماعيلية","فايد","القنطرة شرق","القنطرة غرب","التل الكبير","أبو صوير","القصاصين"],"السويس":["حي السويس","حي الأربعين","حي عتاقة","حي الجناين","حي فيصل","العين السخنة"],"شمال سيناء":["العريش","رفح","بئر العبد","الشيخ زويد","الحسنة","نخل"],"جنوب سيناء":["شرم الشيخ","دهب","نويبع","الطور","سانت كاترين","طابا","أبو رديس","أبو زنيمة","رأس سدر"],"البحر الأحمر":["الغردقة","سفاجا","مرسى علم","القصير","رأس غارب","الشلاتين","حلايب","الجونة"],"الفيوم":["الفيوم","الفيوم الجديدة","إطسا","سنورس","طامية","أبشواي","يوسف الصديق"],"بني سويف":["بني سويف","بني سويف الجديدة","الواسطى","ببا","سمسطا","الفشن","ناصر","إهناسيا"],"المنيا":["المنيا","المنيا الجديدة","ملوي","سمالوط","بني مزار","أبو قرقاص","مغاغة","مطاي","دير مواس","العدوة"],"أسيوط":["أسيوط","أسيوط الجديدة","ديروط","أبنوب","منفلوط","القوصية","الفتح","أبو تيج","الغنايم","ساحل سليم","البداري","صدفا"],"سوهاج":["سوهاج","سوهاج الجديدة","أخميم","طهطا","جرجا","البلينا","المراغة","المنشأة","دار السلام","ساقلتة","جهينة","طما"],"قنا":["قنا","قنا الجديدة","نجع حمادي","دشنا","قوص","فرشوط","أبو تشت","الوقف","قفط","نقادة"],"الأقصر":["الأقصر","الأقصر الجديدة","إسنا","أرمنت","البياضية","القرنة","الطود","الزينية"],"أسوان":["أسوان","أسوان الجديدة","كوم أمبو","إدفو","دراو","نصر النوبة","أبو سمبل","كلابشة"],"الوادي الجديد":["الخارجة","الداخلة","الفرافرة","باريس","بلاط"],"مرسى مطروح":["مرسى مطروح","العلمين","العلمين الجديدة","سيوة","السلوم","الحمام","الضبعة","سيدي براني","النجيلة","الساحل الشمالي"]};
+const GOVS = Object.keys(GOVS_DATA);
+const NATS = ["مصري(ة)","سعودي(ة)","سوري(ة)","أردني(ة)","فلسطيني(ة)","يمني(ة)","سوداني(ة)","ليبي(ة)","مغربي(ة)","أخرى"];
+const UNIS = ["جامعة القاهرة","جامعة عين شمس","جامعة الإسكندرية","جامعة الأزهر","جامعة حلوان","جامعة المنصورة","جامعة الزقازيق","جامعة طنطا","جامعة أسيوط","جامعة المنيا","جامعة المنوفية","جامعة قناة السويس","جامعة بنها","جامعة الفيوم","جامعة بني سويف","جامعة كفر الشيخ","جامعة سوهاج","جامعة جنوب الوادي","جامعة أسوان","جامعة دمياط","جامعة بورسعيد","جامعة السويس","الجامعة الأمريكية","الجامعة الألمانية","الجامعة البريطانية","جامعة النيل","جامعة زويل","جامعة أهلية","أكاديمية أو معهد عالٍ","معهد فني",OTHER];
+const MAJORS = ["الطب البشري","طب الأسنان","الصيدلة","العلاج الطبيعي","التمريض","الطب البيطري","الهندسة","الحاسبات والمعلومات","العلوم","الزراعة","التجارة","الحقوق","الآداب","التربية","الإعلام","الاقتصاد والعلوم السياسية","الشريعة والدراسات الإسلامية","دار العلوم","الخدمة الاجتماعية","السياحة والفنادق","الفنون","التربية الرياضية","تخصص فني / صناعي",OTHER];
+const JOB_FIELDS = ["الطب والصحة","الهندسة","التعليم والتدريس","تقنية المعلومات","المحاسبة والمال","وظيفة حكومية / إدارية","الجيش والشرطة","القانون","التجارة والمبيعات","الصناعة والحرف","النقل والقيادة","الزراعة","الدعوة والعلوم الشرعية","أعمال حرة / مشروع خاص",OTHER];
+
+const HIGHER_EDU = ["بكالوريوس / ليسانس","ماجستير","دكتوراه"];
+const isWorking = a => a.workStatus === "نعم" || a.workStatusF === "نعم";
+
+const SECTIONS = [
+ {id:"basic", title:"البيانات الأساسية", fields:[
+  {id:"gender", t:"select", l:"الجنس", o:["ذكر","أنثى"]},
+  {id:"dob", t:"date", l:"تاريخ الميلاد", h:"التسجيل لمن أتم الثامنة عشرة فقط"},
+  {id:"nat", t:"select", l:"الجنسية", o:NATS},
+  {id:"height", t:"slider", l:"الطول بالسنتيمتر", min:100, max:220, unit:"سم", h:"المدى يبدأ من مئة سنتيمتر مراعاةً لأصحاب القامة القصيرة"},
+  {id:"weight", t:"slider", l:"الوزن بالكيلوجرام", min:30, max:200, unit:"كجم", bmi:true},
+  {id:"skin", t:"select", l:"لون البشرة", o:["أبيض","قمحي","حنطي","أسمر فاتح","أسمر"]},
+  {id:"health", t:"select", l:"الحالة الصحية (قيد التجربة)", o:["سليم تماماً","حالة بسيطة لا تؤثر على الحياة اليومية","مرض مزمن متحكم فيه بالعلاج","مرض مزمن يحتاج رعاية","إعاقة جسدية"], h:"الحالات البسيطة مثل نظارة طبية أو حساسية موسمية لا تحتاج ذكراً. التفاصيل لا تظهر لأي طرف إلا في مرحلة متقدمة وبموافقتك"},
+  {id:"healthDesc", t:"text", l:"وصف مختصر للحالة (اختياري)", h:"مثال: سكر، ضغط، ربو...", why:"لا يُطلب ذكر التفاصيل، وما تكتبه لا يظهر إلا في مرحلة متقدمة وبموافقتك.", if:a=>["مرض مزمن متحكم فيه بالعلاج","مرض مزمن يحتاج رعاية","إعاقة جسدية"].includes(a.health)},
+  {id:"languages", t:"multi", l:"لغات تجيدها بخلاف العربية (اختياري)", o:["الإنجليزية","الفرنسية","الألمانية","أخرى"], vis:"match"},
+ ]},
+ {id:"residence", title:"محل الإقامة", fields:[
+  {id:"resGov", t:"select", l:"محافظة الإقامة", o:GOVS, h:"لا يظهر للطرف الآخر إلا اسم المحافظة فقط"},
+  {id:"resCity", t:"select", l:"المدينة أو المنطقة", o:a=>[...(GOVS_DATA[a.resGov]??[]), OTHER], h:"لا تُعرض قبل مرحلة الكشف الموسّع", if:a=>!!a.resGov},
+  {id:"resCityOther", t:"text", l:"اكتب المدينة أو المنطقة", if:a=>a.resCity===OTHER},
+ ]},
+ {id:"looks", title:"المظهر والملبس", fields:[
+  {id:"beard", t:"select", l:"اللحية", g:"M", o:["ملتحي (لحية سنة)","لحية مهذبة / خفيفة","بدون لحية"]},
+  {id:"dressM", t:"select", l:"طبيعة اللبس", g:"M", o:["جلباب / ثوب شرعي","كلاسيك رسمي","كاجوال","مختلط حسب المناسبة"]},
+  {id:"jewelry", t:"select", l:"هل تلبس مجوهرات؟ (قيد التجربة)", g:"M", o:["لا ألبس شيئاً","فضة أو دبلة فقط","ألبس ذهباً"]},
+  {id:"tattoo", t:"select", l:"هل لديك وشم؟ (قيد التجربة)", g:"M", o:["لا يوجد","يوجد (قديم)","يوجد"]},
+  {id:"hijab", t:"select", l:"نوع غطاء الرأس", g:"F", o:["منتقبة","خمار / حجاب شرعي كامل","طرحة ساترة للشعر بالكامل","طرحة لا تغطي كل الشعر","غير محجبة"]},
+  {id:"dressF", t:"select", l:"طبيعة الملابس", g:"F", o:["عباية / إسدال (ساتر لا يشف ولا يصف)","واسعة ساترة بدون عباية","محتشمة لكن قد تصف الجسم","ملابس عادية"]},
+ ]},
+ {id:"deen", title:"الدين والالتزام", fields:[
+  {id:"prayer", t:"select", l:"الالتزام بالصلوات الخمس", o:["محافظ عليها في أوقاتها","أصلي معظمها","متقطع","لا أصلي حالياً"]},
+  {id:"fajr", t:"select", l:"صلاة الفجر", o:["في وقتها حاضراً بالمسجد","محافظ عليها في وقتها","أصليها في وقتها غالباً","أصليها بعد الشروق"]},
+  {id:"mosque", t:"select", l:"صلاة الجماعة في المسجد", g:"M", o:["كل الصلوات في المسجد","أغلب الصلوات بالمسجد","الجمعة والفجر غالباً","الجمعة فقط","أحياناً","نادراً"]},
+  {id:"ramadan", t:"select", l:"صيام رمضان", o:["كاملاً","معظمه","متقطع","لا أصوم"]},
+  {id:"nawafilFast", t:"select", l:"صيام النوافل", o:["ألتزم بها","أحياناً","لا"]},
+  {id:"pillarsIslam", t:"select", l:"أركان الإسلام", o:["أعرفها وألتزم بها جميعاً","أعرفها ولا ألتزم بالكل","معرفة عامة","لا أعلم ما هي بالتحديد"]},
+  {id:"pillarsFaith", t:"select", l:"أركان الإيمان", o:["أعرفها وأومن بها تفصيلاً","أعرفها إجمالاً","معرفة محدودة","لا أعلم ما هي بالتحديد"]},
+  {id:"quran", t:"select", l:"حفظ القرآن", o:["حافظ كاملاً","أجزاء كبيرة (أكثر من 10)","عدة أجزاء (3–10)","جزء أو بعض السور","قصار السور فقط","لا أحفظ شيئاً"]},
+  {id:"sharia", t:"select", l:"دراسة العلوم الشرعية", o:["متخصص / طالب علم","أتابع دروساً بانتظام","أطلع أحياناً","ثقافة عامة فقط","لا يوجد"]},
+ ]},
+ {id:"social", title:"الحالة الاجتماعية", fields:[
+  {id:"marital", t:"select", l:"الحالة الحالية", g:"M", o:["أعزب (لم يسبق الزواج)","مطلق","أرمل","متزوج ويبحث عن التعدد","متزوج وسبق له الطلاق","متزوج وسبق له الترمل"]},
+  {id:"maritalF", t:"select", l:"الحالة الحالية", g:"F", o:["بكر (لم يسبق الزواج)","مطلقة","أرملة"]},
+  {id:"wives", t:"select", l:"عدد الزوجات حالياً", g:"M", o:["واحدة","اثنتان","ثلاث"], if:a=>(a.marital||"").startsWith("متزوج")},
+  {id:"prevMar", t:"select", l:"عدد مرات الزواج السابقة", o:["مرة","مرتان","ثلاث أو أكثر"], if:a=>{const m=a.gender==="أنثى"?a.maritalF:a.marital; return !!m && !m.includes("لم يسبق");}},
+  {id:"kids", t:"select", l:"هل يوجد أولاد؟", o:["نعم","لا"], if:a=>{const m=a.gender==="أنثى"?a.maritalF:a.marital; return !!m && !m.includes("لم يسبق");}},
+  {id:"kidsCount", t:"select", l:"عددهم", o:["1","2","3","4","5","6","7+"], if:a=>a.kids==="نعم"},
+  {id:"kidsAges", t:"kidages", l:"أعمارهم", if:a=>a.kids==="نعم" && !!a.kidsCount},
+  {id:"custody", t:"select", l:"مع من يعيشون؟ (قيد التجربة)", o:a=>{
+     const base=["معي","مع الطرف الآخر","حضانة مشتركة","جميعاً بالغون ومستقلون بأنفسهم"];
+     return (a.marital||"").startsWith("متزوج") ? ["جميعاً معي في بيت الزوجية",...base] : base;
+   }, if:a=>a.kids==="نعم"},
+ ]},
+ {id:"edu", title:"التعليم", fields:[
+  {id:"education", t:"select", l:"المستوى التعليمي", o:["بدون مؤهل","إعدادي","ثانوي / دبلوم","بكالوريوس / ليسانس","ماجستير","دكتوراه"]},
+  {id:"major", t:"select", l:"التخصص", o:MAJORS, if:a=>HIGHER_EDU.includes(a.education)},
+  {id:"majorOther", t:"text", l:"اذكر التخصص", if:a=>a.major===OTHER},
+  {id:"college", t:"select", l:"الجامعة أو المعهد", o:UNIS, h:"لا يُعرض قبل مرحلة الكشف الموسّع", if:a=>HIGHER_EDU.includes(a.education)},
+  {id:"collegeOther", t:"text", l:"اذكر الجامعة أو المعهد", if:a=>a.college===OTHER},
+ ]},
+ {id:"habits", title:"العادات", fields:[
+  {id:"smoking", t:"select", l:"التدخين (سجائر)", o:["لا أبداً","أقلعت","أحياناً","مدخن"]},
+  {id:"shisha", t:"select", l:"الشيشة / الفيب", o:["لا","نادراً","نعم"]},
+  {id:"intox", t:"select", l:"الكحول / المخدرات", o:["لا أبداً","سابقاً وتوقفت","نعم"]},
+ ]},
+ {id:"work", title:"العمل والوضع المادي", fields:[
+  {id:"workStatus", t:"select", l:"هل تعمل حالياً؟", g:"M", o:["نعم","لا، أبحث عن عمل","لا (طالب)","لا (متقاعد)"]},
+  {id:"workStatusF", t:"select", l:"هل تعملين حالياً؟", g:"F", o:["نعم","لا، أبحث عن عمل","لا (ربة منزل)","لا (طالبة)"]},
+  {id:"jobField", t:"select", l:"مجال العمل (قيد التجربة)", o:JOB_FIELDS, if:isWorking},
+  {id:"jobFieldOther", t:"text", l:"اذكر المجال", if:a=>a.jobField===OTHER},
+  {id:"workMode", t:"select", l:"طبيعة مقر العمل", o:["من المنزل (عن بُعد)","من مقر العمل","مختلط (بيت + مقر)","ميداني / متنقل"], if:isWorking},
+  {id:"workSched", t:"select", l:"مواعيد العمل", o:["صباحي ثابت","مسائي","شيفتات متغيرة","ساعات مرنة"], if:isWorking},
+  {id:"workMix", t:"select", l:"هل بيئة العمل مختلطة؟", o:["لا، منفصلة","نعم، مختلطة","اختلاط محدود"], if:isWorking},
+  {id:"workAfter", t:"select", l:"هل ترغبين في العمل بعد الزواج؟", g:"F", o:["نعم بالتأكيد","نعم لكن بشروط","حسب الظروف والاتفاق مع الزوج","أفضل عدم العمل"]},
+  {id:"fin", t:"select", l:"الوضع المادي الشخصي", o:["ممتاز","جيد","متوسط","محدود"]},
+  {id:"famFin", t:"select", l:"الوضع المادي للأسرة", o:["ممتاز","جيد","متوسط","محدود"]},
+ ]},
+ {id:"wedding", title:"الترتيبات المادية والزفاف", intro:"اختر النموذج الأقرب لك — التفاصيل النهائية دائماً بالاتفاق بين الطرفين.", fields:[
+  {id:"finModel", t:"select", l:"نموذج الترتيب المادي (قيد التجربة)", g:"M", o:[
+    "الأصل الشرعي: أتحمل المهر والتجهيز كاملاً — بلا قايمة",
+    "أتحمل التجهيز، وما تشارك به الزوجة يُدفع ثمنه أو تُكتب قايمة بقيمته فقط",
+    "العرف المصري: مهر رمزي ومؤخر ومشاركة في التجهيز مع قايمة كاملة"]},
+  {id:"finModelF", t:"select", l:"النموذج المادي المقبول لديك (قيد التجربة)", g:"F", o:[
+    "الأصل الشرعي: الزوج يتحمل كل شيء — بلا قايمة",
+    "أشارك ببعض التجهيز ويُدفع ثمنه أو يُكتب بقيمته فقط",
+    "العرف المصري: مشاركة في التجهيز مع قايمة كاملة",
+    "حسب الاتفاق"]},
+  {id:"shabkaInMahr", t:"select", l:"هل تُحسب الشبكة ضمن المهر؟", g:"M", o:["نعم، ضمن المهر","لا، هدية مستقلة"], if:a=>(a.finModel||"").startsWith("الأصل الشرعي")},
+  {id:"contribHandling", t:"select", l:"ما تجهزه الزوجة", g:"M", o:["أدفع ثمنه","تُكتب قايمة بقيمته فقط"], if:a=>(a.finModel||"").startsWith("أتحمل التجهيز")},
+  {id:"muakharStance", t:"select", l:"موقفك من المؤخر", g:"M", o:["أقبله بالاتفاق","قابل للتفاوض","أرفضه تماماً"], if:a=>!!a.finModel && !(a.finModel||"").startsWith("العرف")},
+  {id:"muakharStanceF", t:"select", l:"المؤخر بالنسبة لك", g:"F", o:["أشترطه","بالاتفاق","لا أشترطه"]},
+  {id:"furnishLevel", t:"select", l:"مستوى التجهيز المستهدف (بالاتفاق)", o:["أساسي","متوسط","كامل بالكماليات"]},
+  {id:"shabka", t:"select", l:"الشبكة", o:["شبكة كاملة","هدية رمزية (دبلة ومحبس)","دبلة فقط","بدون شبكة (تيسيراً)"]},
+  {id:"engParty", t:"select", l:"إقامة حفل خطوبة", o:["نعم، حفل خطوبة منفصل","قراءة فاتحة فقط","لا، كتب كتاب مباشرة"]},
+  {id:"engStyle", t:"select", l:"مواصفات حفل الخطوبة", o:["إسلامي (لا اختلاط، لا معازف)","عائلي بسيط في المنزل","قاعة مع التزام بالضوابط","قاعة تقليدية"], if:a=>a.engParty==="نعم، حفل خطوبة منفصل"},
+  {id:"wedParty", t:"select", l:"إقامة حفل زفاف", o:["نعم","لا (وليمة وإشهار فقط)"]},
+  {id:"wedStyle", t:"select", l:"مواصفات حفل الزفاف", o:["إسلامي (منفصل، دف فقط)","قاعة عائلية محافظة","فرح تقليدي"], if:a=>a.wedParty==="نعم"},
+  {id:"walima", t:"select", l:"وليمة الزواج", o:["نعم ضروري (سُنة)","حسب الاستطاعة","غير ضروري"]},
+  {id:"engDur", t:"select", l:"مدة الخطوبة المستهدفة", o:["أقل من 6 شهور","من 6 شهور إلى سنة","أكثر من سنة"]},
+ ]},
+ {id:"afterMarriage", title:"الحياة بعد الزواج (قيد التجربة)", vis:"private", fields:[
+  {id:"living", t:"select", l:"أين ستسكنان بعد الزواج؟", o:["شقة مستقلة","مع أسرة الزوج","مع أسرة الزوجة","لم نحدد بعد"], why:"من أكثر النقاط تأثيراً على التوافق العملي."},
+  {id:"housingReadiness", t:"select", l:"جاهزية السكن", o:["جاهز (تمليك)","جاهز (إيجار)","قيد التجهيز","سنجهزه بعد الاتفاق"], pnts:true},
+  {id:"residenceAfter", t:"select", l:"محافظة السكن بعد الزواج", o:[...GOVS,"مرن حسب الاتفاق"]},
+  {id:"relocation", t:"select", l:"الاستعداد للسفر أو الهجرة", o:["أرغب في الهجرة أو العمل بالخارج","منفتح حسب الفرصة","أفضل الاستقرار في مصر","لا أرغب في السفر إطلاقاً"], why:"قد يكون عاملاً حاسماً للطرفين في الاتجاهين."},
+  {id:"readiness", t:"select", l:"جاهزيتك للزواج", o:["جاهز الآن","خلال ٦ أشهر","خلال سنة","أكثر من سنة","حسب الظروف"]},
+  {id:"finReadiness", t:"select", l:"الجاهزية المادية للزواج", o:["جاهز مادياً الآن","شبه جاهز","أحتاج وقتاً"], pnts:true},
+  {id:"dependents", t:"select", l:"هل تعول أفراداً من أسرتك؟", o:["لا","نعم، الوالدين","نعم، إخوة أو أخوات","نعم، آخرون"], why:"التزام مالي قائم من حق الطرف الآخر معرفته.", pnts:true},
+ ]},
+ {id:"skills", title:"مهارات الحياة (قيد التجربة)", fields:[
+  {id:"cooking", t:"select", l:"إجادة الطبخ", g:"F", o:["أجيده جيداً","الأساسيات","لا أجيده"]},
+  {id:"cleaning", t:"select", l:"التنظيف وتدبير المنزل", g:"F", o:["أجيده تماماً","جيد","ضعيف"]},
+  {id:"childcare", t:"select", l:"الاستعداد لتربية الأطفال", o:["مستعد وقادر","مستعد مع التعلم","غير مستعد حالياً"]},
+  {id:"homeHelp", t:"select", l:"المشاركة في خدمة المنزل", g:"M", o:["أشارك بالكامل","في بعض الأمور","لا أشارك"]},
+  {id:"driving", t:"select", l:"رخصة قيادة", o:["نعم","لا"]},
+  {id:"car", t:"select", l:"سيارة خاصة", o:["نعم","لا"]},
+  {id:"socialStyle", t:"select", l:"التواصل الاجتماعي", o:["اجتماعي جداً","متوسط","هادئ / انطوائي"]},
+  {id:"club", t:"select", l:"اشتراك نادي فعال", o:["نعم","لا"]},
+ ]},
+ {id:"reqs", title:"مواصفات شريك حياتك", intro:"لكل شرط، حدد درجة أهميته. الشروط الحاسمة خمسة كحد أقصى — من لا يحققها يُستبعد نهائياً.", fields:[
+  {id:"rAge", t:"range", l:"العمر المطلوب", min:18, max:70, lo:22, hi:35, req:1},
+  {id:"rHeight", t:"range", l:"الطول المطلوب بالسنتيمتر", min:100, max:210, lo:155, hi:185, req:1, h:"المدى يبدأ من مئة سنتيمتر مراعاةً لأصحاب القامة القصيرة"},
+  {id:"rWeight", t:"range", l:"الوزن المطلوب بالكيلوجرام", min:30, max:150, lo:50, hi:95, req:1},
+  {id:"rNat", t:"select", l:"الجنسية", o:["لا يهم","مصري(ة) فقط","عربي(ة)"], req:1},
+  {id:"rSkin", t:"select", l:"لون البشرة", o:["لا يهم","أبيض","قمحي","حنطي","أسمر فاتح","أسمر"], req:1},
+  {id:"rHealth", t:"select", l:"الحالة الصحية", o:["سليم تماماً فقط","أقبل الحالات البسيطة","أقبل مرضاً مزمناً متحكماً فيه","لا يهم"], req:1},
+  {id:"rLookM", t:"select", l:"نوع الحجاب المطلوب (قيد التجربة)", g:"M", o:["منتقبة","خمار فأكثر","حجاب شرعي كامل (يستر ولا يشف ولا يصف) فأكثر","طرحة ساترة للشعر فأكثر","لا يهم"], h:"كل خيار يقبل ما هو أكثر التزاماً منه", req:1},
+  {id:"rLookF", t:"select", l:"اللحية المطلوبة", g:"F", o:["ملتحي","لحية ولو خفيفة","لا يهم"], req:1},
+  {id:"rJewelry", t:"select", l:"لبس الذهب أو المجوهرات (قيد التجربة)", g:"F", o:["لا يلبس ذهباً","فضة أو دبلة مقبولة","لا يهم"], req:1},
+  {id:"rTattoo", t:"select", l:"الوشم (قيد التجربة)", g:"F", o:["بدون وشم","مقبول إن كان قديماً","لا يهم"], req:1},
+  {id:"rPrayer", t:"select", l:"الالتزام بالصلاة", o:["محافظ على الخمس","يصلي معظمها","غير مشترط"], req:1},
+  {id:"rFajr", t:"select", l:"صلاة الفجر", o:["في وقتها حاضراً","في وقتها غالباً","غير مشترط"], req:1},
+  {id:"rQuran", t:"select", l:"حفظ القرآن", o:["حافظ كاملاً","أجزاء كبيرة","بعض الأجزاء","قصار السور على الأقل","غير مشترط"], req:1},
+  {id:"rMarital", t:"select", l:"الحالات المقبولة", g:"M", o:["أقبل أي حالة","بكر فقط","بكر أو مطلقة","بكر أو أرملة","مطلقة فقط","أرملة فقط","مطلقة أو أرملة"], req:1},
+  {id:"rMaritalF", t:"select", l:"الحالات المقبولة", g:"F", o:["أقبل أي حالة","أعزب فقط","أعزب أو مطلق","أعزب أو أرمل","مطلق فقط","أرمل فقط","أقبل متزوجاً (تعدد)"], req:1},
+  {id:"rKids", t:"select", l:"قبول وجود أولاد", o:["مرفوض تماماً","مقبول بشروط","مقبول"], req:1},
+  {id:"rEdu", t:"select", l:"الحد الأدنى للتعليم", o:["دكتوراه","ماجستير فأعلى","بكالوريوس فأعلى","ثانوي فأعلى","غير مهم"], req:1},
+  {id:"rSmoke", t:"select", l:"التدخين والشيشة", o:["مرفوض بالكامل","مقبول السجائر فقط","مقبول"], req:1},
+  {id:"rIntox", t:"select", l:"الكحول والمخدرات", o:["مرفوض تماماً","مقبول إذا توقف"], req:1},
+  {id:"rWork", t:"select", l:"هل يشترط أن يعمل الشريك؟", o:["نعم","يفضل","غير مشترط"], req:1},
+  {id:"rFin", t:"select", l:"الوضع المادي", o:["ممتاز","جيد","متوسط فأعلى","غير مهم"], req:1},
+  {id:"rLiving", t:"select", l:"ترتيب السكن المطلوب", o:["شقة مستقلة ضرورية","أقبل السكن مع الأهل مؤقتاً","لا يهم"], req:1},
+  {id:"rRelocation", t:"select", l:"الموقف من السفر أو الهجرة", o:["أرغب في شريك يخطط للهجرة","أفضل الاستقرار في مصر","لا يهم"], req:1},
+  {id:"rReadiness", t:"select", l:"جاهزية الشريك للزواج", o:["جاهز قريباً (خلال سنة)","لا يهم"], req:1},
+  {id:"rLanguage", t:"select", l:"لغة أجنبية مطلوبة", o:["الإنجليزية","أي لغة أجنبية","لا يهم"], req:1},
+  {id:"rWifeWork", t:"select", l:"رغبة الزوجة في العمل", g:"M", o:["أفضّل أن تعمل","حسب الاتفاق","أفضّل ألا تعمل"], req:1},
+  {id:"rFinModel", t:"select", l:"النموذج المادي المقبول (قيد التجربة)", g:"F", o:["الأصل الشرعي (يتكفل بكل شيء)","قايمة بقيمة مشاركتي فقط","قايمة كاملة بالعرف","حسب الاتفاق"], req:1},
+  {id:"rWedding", t:"select", l:"شكل حفل الزفاف", o:["إسلامي (بلا اختلاط أو معازف)","قاعة مع ضوابط","عائلي بسيط","لا يشترط"], req:1},
+  {id:"rCooking", t:"select", l:"إجادة الطبخ", g:"M", o:["تجيده","الأساسيات على الأقل","غير مشترط"], req:1},
+  {id:"rCleaning", t:"select", l:"تدبير المنزل", g:"M", o:["تجيده تماماً","جيد على الأقل","غير مشترط"], req:1},
+  {id:"rChildcare", t:"select", l:"تربية الأطفال", o:["مستعد وقادر","غير مشترط"], req:1},
+  {id:"rHomeHelp", t:"select", l:"مشاركة الزوج في خدمة المنزل", g:"F", o:["يشارك بالكامل","في بعض الأمور","غير مشترط"], req:1},
+  {id:"rDriving", t:"select", l:"رخصة قيادة", o:["نعم","غير مشترط"], req:1},
+  {id:"rCar", t:"select", l:"سيارة خاصة", o:["نعم","غير مشترط"], req:1},
+  {id:"rSocial", t:"select", l:"التواصل الاجتماعي", o:["اجتماعي جداً","متوسط","هادئ","لا يهم"], req:1},
+  {id:"rClub", t:"select", l:"اشتراك نادٍ فعال", o:["يشترط","غير مشترط"], req:1},
+ ]},
+];
+
+const LS_KEY = "spike2a_v03";
+let state = { answers:{}, imp:{}, section:0, timings:{}, enteredAt:Date.now(), startedAt:Date.now(), feedback:{} };
+try { const saved = JSON.parse(localStorage.getItem(LS_KEY)); if (saved && confirm("لديك إجابات محفوظة، هل تريد المتابعة من حيث توقفت؟")) state = saved; else localStorage.removeItem(LS_KEY); } catch {}
+
+const app = document.getElementById("app");
+const genderOf = () => state.answers.gender;
+const optsOf = (f) => typeof f.o === "function" ? f.o(state.answers) : f.o;
+const visibleFields = (sec) => sec.fields.filter(f =>
+  (!f.g || (f.g==="M"&&genderOf()==="ذكر") || (f.g==="F"&&genderOf()==="أنثى")) &&
+  (!f.if || f.if(state.answers)));
+const dbCount = () => Object.values(state.imp).filter(v=>v==="شرط حاسم").length;
+const setCriteria = () => Object.values(state.imp).filter(v=>v&&v!=="لا يهم").length;
+const kidsN = () => { const c = state.answers.kidsCount || ""; return Math.min(parseInt(c) || 0, 7); };
+function save(){ localStorage.setItem(LS_KEY, JSON.stringify(state)); }
+
+const PNTS = "أفضل عدم الإفصاح";
+
+// Feature A — من يرى هذا الحقل ومتى (يُشتق من تصنيف الرؤية)
+const SECTION_VIS = { basic:"card", residence:"card", looks:"card", deen:"match",
+  social:"mandatory", edu:"private", habits:"match", work:"private", wedding:"private",
+  afterMarriage:"private", skills:"match", reqs:"req" };
+const VIS_TEXT = {
+  card: "من يراها: تظهر ضمن البطاقة المبدئية المجهّلة (بيانات عامة ونسبة توافق) دون اسمك.",
+  match: "من يراها: تُستخدم لحساب نسبة التوافق فقط، لا تظهر كقيمة صريحة في البداية.",
+  mandatory: "من يراها: معلومة جوهرية تُعرض مبكراً حتى لا يُفاجأ أحد لاحقاً.",
+  private: "من يراها: لا تظهر إلا في مرحلة الكشف الموسّع وبموافقتك.",
+  identity: "من يراها: لا تظهر إلا في مراحل التوثيق المتقدمة.",
+  req: "من يراها: تفضيلك الخاص لاختيار الشريك — لا يظهر للطرف الآخر إطلاقاً.",
+};
+function visNoteText(f, sec){
+  const vis = f.vis || sec.vis || SECTION_VIS[sec.id] || "match";
+  const why = f.why ? ("لماذا نسأل: " + f.why + "\n") : "";
+  return why + (VIS_TEXT[vis] || "");
+}
+
+// قسمٌ مكتمل: كل حقوله المرئية مُجابة (النصوص اختيارية)، ودرجات الأهمية محددة
+function isSectionComplete(sec){
+  for (const f of visibleFields(sec)){
+    if (f.t === "text" || f.t === "multi") continue;
+    if (f.t === "range"){ if (f.req && !state.imp[f.id]) return false; continue; }
+    if (f.t === "kidages"){
+      const n = kidsN();
+      for (let i = 1; i <= n; i++) if (!state.answers[`kidAge_${i}`]) return false;
+      continue;
+    }
+    if (!state.answers[f.id]) return false;
+    if (f.req && !state.imp[f.id]) return false;
+  }
+  return true;
+}
+
+function el(tag, cls, text){
+  const n = document.createElement(tag);
+  if (cls) n.className = cls;
+  if (text !== undefined) n.textContent = text;
+  return n;
+}
+function makeSelect(options, value, onchange){
+  const s = el("select");
+  const first = el("option", null, "اختر...");
+  first.value = "";
+  s.appendChild(first);
+  for (const o of options){
+    const opt = el("option", null, o);
+    if (o === value) opt.selected = true;
+    s.appendChild(opt);
+  }
+  s.addEventListener("change", onchange);
+  return s;
+}
+function makeInput(type, value, attrs, onchange){
+  const i = el("input");
+  i.type = type;
+  if (value !== undefined && value !== null && value !== "") i.value = value;
+  for (const k in attrs) i.setAttribute(k, attrs[k]);
+  i.addEventListener("change", onchange);
+  return i;
+}
+function buildLabel(h, w){
+  if (!h || !w) return "";
+  const bmi = w / Math.pow(h/100, 2);
+  if (bmi < 18.5) return "نحيف";
+  if (bmi < 25) return "متناسق";
+  if (bmi < 30) return "ممتلئ قليلاً";
+  return "ممتلئ";
+}
+
+const RERENDER_ON = new Set(["gender","health","marital","maritalF","kids","kidsCount","education","major","college","workStatus","workStatusF","jobField","finModel","engParty","wedParty","resGov","resCity"]);
+
+function render(){
+  const sec = SECTIONS[state.section];
+  if (!sec) return renderDone();
+  app.replaceChildren();
+
+  const h1 = el("h1", null, "استبيان الزواج ");
+  h1.appendChild(el("span", "tag", "نسخة تجريبية"));
+  app.appendChild(h1);
+  const pctDone = Math.round(state.section / SECTIONS.length * 100);
+  app.appendChild(el("p", "muted", `القسم ${state.section+1} من ${SECTIONS.length} — أكملت ${pctDone}٪`));
+  if (state.section === 0)
+    app.appendChild(el("p", "muted", "يستغرق الاستبيان حوالي ١٠ إلى ١٥ دقيقة. تُحفظ إجاباتك تلقائياً ويمكنك المتابعة لاحقاً."));
+  const bar = el("div", "bar"); const fill = el("div");
+  fill.style.width = pctDone + "%";
+  bar.appendChild(fill); app.appendChild(bar);
+  app.appendChild(el("h2", null, sec.title));
+  if (sec.intro) app.appendChild(el("p", "muted", sec.intro));
+
+  // التنقل بين الأقسام — للمراجعة والتعديل في أي وقت
+  {
+    const navWrap = el("div", "fg");
+    navWrap.appendChild(el("label", null, "التنقل بين الأقسام (للمراجعة والتعديل)"));
+    const jump = el("select");
+    SECTIONS.forEach((s, i) => {
+      const done = isSectionComplete(s);
+      const opt = el("option", null, `${i+1}. ${s.title}${done ? " ✓" : ""}`);
+      opt.value = String(i);
+      if (i === state.section) opt.selected = true;
+      jump.appendChild(opt);
+    });
+    jump.addEventListener("change", (e) => {
+      recordTiming(sec.id);
+      state.section = +e.target.value; state.enteredAt = Date.now(); save(); render(); window.scrollTo(0,0);
+    });
+    navWrap.appendChild(jump);
+    app.appendChild(navWrap);
+  }
+
+  // استيراد جلسة سابقة — يظهر في أول قسم فقط لتوفير وقت إعادة الإدخال
+  if (state.section === 0){
+    const impWrap = el("div", "fg");
+    const impBtn = el("button", "sec", "استيراد إجابات محفوظة (ملف JSON)");
+    const fileIn = el("input");
+    fileIn.type = "file";
+    fileIn.accept = ".json,application/json";
+    fileIn.style.display = "none";
+    fileIn.addEventListener("change", () => {
+      const file = fileIn.files && fileIn.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const data = JSON.parse(String(reader.result));
+          if (typeof data.version !== "string" || !data.version.startsWith("spike2a")){
+            alert("هذا الملف ليس ملف إجابات صالحاً"); return;
+          }
+          // نبدأ من أول قسم بعد الاستيراد حتى تتمكن من المراجعة والتعديل
+          state = { answers:data.answers??{}, imp:data.imp??{}, section:0,
+            timings:data.timings??{}, enteredAt:Date.now(), startedAt:Date.now(),
+            feedback:data.feedback??{} };
+          save(); render();
+          alert("تم استيراد إجاباتك. يمكنك الآن مراجعة أي قسم وتعديله من قائمة التنقل بالأعلى.");
+        } catch { alert("تعذر قراءة الملف"); }
+      };
+      reader.readAsText(file);
+    });
+    impBtn.addEventListener("click", () => fileIn.click());
+    impWrap.appendChild(impBtn);
+    impWrap.appendChild(fileIn);
+    impWrap.appendChild(el("div", "help", "أكملت جزءاً في جلسة سابقة على جهاز آخر؟ استورد ملف JSON الذي نزّلته لتكمل من حيث توقفت"));
+    app.appendChild(impWrap);
+  }
+
+  let dbBox = null;
+  if (sec.id === "reqs"){
+    dbBox = el("div", "db" + (dbCount()>=DB_CAP ? " full" : ""), `شروطك الحاسمة: ${dbCount()} من ${DB_CAP}`);
+    app.appendChild(dbBox);
+  }
+
+  for (const f of visibleFields(sec)){
+    const fg = el("div", "fg");
+    fg.dataset.fid = f.id;
+    // سطر العنوان مع زر معلومات (لماذا نسأل / من يراها ومتى)
+    const lblRow = el("label", null, f.l);
+    const info = el("span", "info", "ⓘ");
+    info.title = "لماذا نسأل / من يرى هذه المعلومة";
+    lblRow.appendChild(info);
+    fg.appendChild(lblRow);
+    const note = el("div", "note", visNoteText(f, sec));
+    note.style.display = "none";
+    info.addEventListener("click", () => {
+      note.style.display = note.style.display === "none" ? "block" : "none";
+    });
+    fg.appendChild(note);
+    if (f.h) fg.appendChild(el("div", "help", f.h));
+    const clearMissing = () => fg.classList.remove("missing");
+    const onAnswer = (e) => {
+      state.answers[f.id] = e.target.value; save(); clearMissing();
+      if (RERENDER_ON.has(f.id)) render();
+    };
+    if (f.t === "select"){
+      const opts = f.pnts ? [...optsOf(f), PNTS] : optsOf(f);
+      fg.appendChild(makeSelect(opts, state.answers[f.id], onAnswer));
+    } else if (f.t === "multi"){
+      const wrap = el("div", "multi");
+      const chosen = Array.isArray(state.answers[f.id]) ? state.answers[f.id] : [];
+      for (const o of f.o){
+        const lab = el("label");
+        const cb = el("input"); cb.type = "checkbox"; cb.checked = chosen.includes(o);
+        cb.addEventListener("change", () => {
+          const cur = Array.isArray(state.answers[f.id]) ? state.answers[f.id] : [];
+          state.answers[f.id] = cb.checked ? [...cur, o] : cur.filter(x=>x!==o);
+          save(); clearMissing();
+        });
+        lab.appendChild(cb); lab.appendChild(el("span", null, o));
+        wrap.appendChild(lab);
+      }
+      fg.appendChild(wrap);
+    } else if (f.t === "slider"){
+      const wrap = el("div", "single");
+      const readout = el("div", "hint",
+        state.answers[f.id] ? sliderText(f) : "حرّك المؤشر لاختيار القيمة");
+      const r = makeInput("range", state.answers[f.id] ?? Math.round((f.min+f.max)/2), {min:f.min, max:f.max}, ()=>{});
+      r.addEventListener("input", (e) => {
+        state.answers[f.id] = e.target.value; save(); clearMissing();
+        readout.textContent = sliderText(f);
+        const hint = document.getElementById("bmiHint");
+        if (hint) hint.textContent = bmiText();
+      });
+      wrap.appendChild(r);
+      wrap.appendChild(readout);
+      fg.appendChild(wrap);
+      if (f.bmi){
+        const hint = el("div", "hint", bmiText());
+        hint.id = "bmiHint";
+        fg.appendChild(hint);
+      }
+    } else if (f.t === "date"){
+      fg.appendChild(makeInput("date", state.answers[f.id], {}, onAnswer));
+    } else if (f.t === "text"){
+      fg.appendChild(makeInput("text", state.answers[f.id], {}, onAnswer));
+    } else if (f.t === "kidages"){
+      const n = kidsN();
+      for (let i = 1; i <= n; i++){
+        const row = el("div", "kidrow");
+        row.appendChild(el("span", null, `عمر الابن/الابنة ${i}`));
+        row.appendChild(makeInput("number", state.answers[`kidAge_${i}`], {min:0, max:45},
+          e => { state.answers[`kidAge_${i}`] = e.target.value; save(); clearMissing(); }));
+        fg.appendChild(row);
+      }
+      if ((state.answers.kidsCount||"") === "7+")
+        fg.appendChild(el("div", "help", "يكفي إدخال أعمار السبعة الأكبر"));
+    } else if (f.t === "range"){
+      const loKey = f.id+"_min", hiKey = f.id+"_max";
+      if (!state.answers[loKey]) state.answers[loKey] = String(f.lo);
+      if (!state.answers[hiKey]) state.answers[hiKey] = String(f.hi);
+      const dual = el("div", "dual");
+      const track = el("div", "track");
+      const fillseg = el("div", "fillseg");
+      dual.appendChild(track);
+      dual.appendChild(fillseg);
+      const readout = el("div", "hint", rangeText(f));
+      const pct = v => (v - f.min) / (f.max - f.min) * 100;
+      const paint = () => {
+        const lo = +state.answers[loKey], hi = +state.answers[hiKey];
+        // RTL: right side is min
+        fillseg.style.right = pct(lo) + "%";
+        fillseg.style.width = Math.max(0, pct(hi) - pct(lo)) + "%";
+      };
+      const mk = (key) => {
+        const r = makeInput("range", state.answers[key], {min:f.min, max:f.max}, ()=>{});
+        r.addEventListener("input", (e) => {
+          state.answers[key] = e.target.value;
+          let lo = +state.answers[loKey], hi = +state.answers[hiKey];
+          if (lo > hi){ [state.answers[loKey], state.answers[hiKey]] = [String(hi), String(lo)]; }
+          readout.textContent = rangeText(f);
+          paint(); save();
+        });
+        return r;
+      };
+      dual.appendChild(mk(loKey));
+      dual.appendChild(mk(hiKey));
+      paint();
+      fg.appendChild(dual);
+      fg.appendChild(readout);
+    }
+    if (f.req){
+      const impWrap = el("div", "imp");
+      const impSel = el("select");
+      const first = el("option", null, "درجة الأهمية...");
+      first.value = "";
+      impSel.appendChild(first);
+      for (const o of IMP){
+        const opt = el("option", null, o);
+        if (o === state.imp[f.id]) opt.selected = true;
+        impSel.appendChild(opt);
+      }
+      impSel.addEventListener("change", (e) => {
+        if (e.target.value === "شرط حاسم" && state.imp[f.id] !== "شرط حاسم" && dbCount() >= DB_CAP){
+          e.target.value = state.imp[f.id] ?? "";
+          alert("وصلت للحد الأقصى: خمسة شروط حاسمة فقط. خفف شرطاً آخر أولاً.");
+          return;
+        }
+        state.imp[f.id] = e.target.value; save(); fg.classList.remove("missing");
+        if (dbBox){
+          dbBox.textContent = `شروطك الحاسمة: ${dbCount()} من ${DB_CAP}`;
+          dbBox.className = "db" + (dbCount()>=DB_CAP ? " full" : "");
+        }
+      });
+      impWrap.appendChild(impSel);
+      fg.appendChild(impWrap);
+    }
+    app.appendChild(fg);
+  }
+
+  const err = el("p", "error");
+  app.appendChild(err);
+  const nav = el("div", "nav");
+  if (state.section > 0){
+    const back = el("button", "sec", "السابق");
+    back.addEventListener("click", () => {
+      recordTiming(sec.id); state.section--; state.enteredAt = Date.now(); save(); render(); window.scrollTo(0,0);
+    });
+    nav.appendChild(back);
+  }
+  const next = el("button", null, state.section === SECTIONS.length-1 ? "إنهاء" : "التالي");
+  next.addEventListener("click", () => {
+    const v = validate(sec);
+    if (v){
+      err.textContent = v.msg;
+      document.querySelectorAll(".fg.missing").forEach(x => x.classList.remove("missing"));
+      for (const id of v.ids){
+        const box = document.querySelector(`.fg[data-fid="${id}"]`);
+        if (box) box.classList.add("missing");
+      }
+      const firstBox = document.querySelector(".fg.missing");
+      if (firstBox) firstBox.scrollIntoView({behavior:"smooth", block:"center"});
+      return;
+    }
+    recordTiming(sec.id); state.section++; state.enteredAt = Date.now(); save(); render(); window.scrollTo(0,0);
+  });
+  nav.appendChild(next);
+  app.appendChild(nav);
+}
+
+function sliderText(f){
+  return `القيمة: ${state.answers[f.id]} ${f.unit ?? ""}`;
+}
+function bmiText(){
+  const label = buildLabel(+state.answers.height, +state.answers.weight);
+  return label ? `مؤشر تقريبي للقوام: ${label} (تقديري، وقد لا يعبر عن البنية الرياضية)` : "";
+}
+function rangeText(f){
+  const lo = state.answers[f.id+"_min"], hi = state.answers[f.id+"_max"];
+  let extra = "";
+  if (f.id === "rWeight"){
+    const h = (+state.answers.rHeight_min + +state.answers.rHeight_max)/2 || null;
+    if (h){
+      const a = buildLabel(h, +lo), b = buildLabel(h, +hi);
+      if (a && b) extra = a===b ? ` — قوام تقريبي: ${a}` : ` — قوام تقريبي: من ${a} إلى ${b}`;
+    }
+  }
+  return `من ${lo} إلى ${hi}${extra}`;
+}
+
+function recordTiming(id){ state.timings[id] = (state.timings[id]||0) + Math.round((Date.now()-state.enteredAt)/1000); }
+
+function validate(sec){
+  const ids = [];
+  let msg = null;
+  const flag = (id, m) => { ids.push(id); if (!msg) msg = m; };
+  for (const f of visibleFields(sec)){
+    if (f.t === "range"){
+      const lo = +state.answers[f.id+"_min"], hi = +state.answers[f.id+"_max"];
+      if (lo && hi && lo > hi) flag(f.id, `النطاق غير صحيح في: ${f.l}`);
+      if (f.id === "rAge" && lo && lo < 18) flag(f.id, "الحد الأدنى للعمر ثمانية عشر عاماً");
+      if (f.req && !state.imp[f.id]) flag(f.id, "حدد درجة الأهمية للشروط المظللة");
+      continue;
+    }
+    if (f.t === "slider"){
+      if (!state.answers[f.id]) flag(f.id, `حرّك المؤشر في: ${f.l}`);
+      continue;
+    }
+    if (f.t === "kidages"){
+      const n = kidsN();
+      for (let i = 1; i <= n; i++)
+        if (!state.answers[`kidAge_${i}`]) { flag(f.id, `أدخل أعمار الأولاد كاملة`); break; }
+      continue;
+    }
+    if (f.t === "text" || f.t === "multi"){ continue; } // اختيارية
+    if (!state.answers[f.id]){ flag(f.id, `أكمل الحقول المظللة`); continue; }
+    if (f.id === "dob"){
+      const age = (Date.now() - new Date(state.answers.dob).getTime()) / 31557600000;
+      if (!(age >= 18)) flag(f.id, "التسجيل لمن أتم الثامنة عشرة فقط");
+    }
+    if (f.req && !state.imp[f.id]) flag(f.id, "حدد درجة الأهمية للشروط المظللة");
+  }
+  if (sec.id === "reqs" && ids.length === 0 && setCriteria() < MIN_CRITERIA){
+    return { msg: `حدد ${MIN_CRITERIA} شروط على الأقل بدرجة غير "لا يهم" حتى يعمل التوافق`, ids: [] };
+  }
+  return ids.length || msg ? { msg, ids } : null;
+}
+
+// Feature D — نموذج توضيحي مبسّط: يطبّق منطق الشروط الحاسمة (فلتر) وأوزان
+// الأهمية على شريك افتراضي ثابت. رقم توضيحي فقط، ليس محرّك التوافق الحقيقي.
+const IMP_WEIGHT = { "أساسي":8, "مفضل":4, "يُستحسن":1, "لا يهم":0 };
+function strHash(s){ let h = 0; for (let i=0;i<s.length;i++){ h = (h*31 + s.charCodeAt(i)) >>> 0; } return h % 100; }
+function illustrativeScore(){
+  let wSum = 0, wHit = 0, blocked = false;
+  for (const sec of SECTIONS){
+    for (const f of sec.fields){
+      if (!f.req) continue;
+      const imp = state.imp[f.id];
+      if (!imp || imp === "لا يهم") continue;
+      const satisfied = strHash(f.id) < (imp === "شرط حاسم" ? 85 : 72);
+      if (imp === "شرط حاسم"){ if (!satisfied) blocked = true; continue; }
+      const w = IMP_WEIGHT[imp] || 0;
+      wSum += w; if (satisfied) wHit += w;
+    }
+  }
+  const score = wSum === 0 ? (blocked ? 0 : 100) : Math.round(wHit / wSum * 100);
+  return { blocked, score };
+}
+
+function collectRows(){
+  const rows = [["القسم","السؤال","الإجابة","درجة الأهمية"]];
+  for (const sec of SECTIONS){
+    for (const f of visibleFields(sec)){
+      let val = "";
+      if (f.t === "range") val = `من ${state.answers[f.id+"_min"]??""} إلى ${state.answers[f.id+"_max"]??""}`;
+      else if (f.t === "kidages"){
+        const n = kidsN();
+        val = Array.from({length:n}, (_,i)=>state.answers[`kidAge_${i+1}`]??"").join(" / ");
+      }
+      else if (f.t === "multi") val = (state.answers[f.id]||[]).join(" / ");
+      else val = state.answers[f.id] ?? "";
+      rows.push([sec.title, f.l, String(val), state.imp[f.id] ?? ""]);
+    }
+  }
+  for (const s of SECTIONS) rows.push(["التوقيت", s.title, String(state.timings[s.id]||0) + " ثانية", ""]);
+  for (const k in state.feedback) rows.push(["رأي المستخدم", k, state.feedback[k] ?? "", ""]);
+  return rows;
+}
+
+function download(name, mime, content){
+  const blob = new Blob([content], {type: mime});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  a.click();
+}
+
+/* إكسل حقيقي: ملف xlsx أصلي (أرشيف مضغوط قياسي) — يفتح بلا أي تحذير،
+   والورقة يمين-لليسار والنص محاذى لليمين. بلا أي مكتبات خارجية. */
+const xmlEsc = s => String(s).replaceAll("&","&amp;").replaceAll("<","&lt;")
+  .replaceAll(">","&gt;").replaceAll('"',"&quot;");
+
+function sheetXml(rows){
+  const colLetter = i => String.fromCharCode(65 + i); // A..D
+  const rowsXml = rows.map((r, ri) =>
+    `<row r="${ri+1}">` + r.map((c, ci) =>
+      `<c r="${colLetter(ci)}${ri+1}" t="inlineStr" s="1"><is><t xml:space="preserve">${xmlEsc(c)}</t></is></c>`
+    ).join("") + `</row>`
+  ).join("");
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>` +
+    `<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">` +
+    `<sheetViews><sheetView rightToLeft="1" workbookViewId="0"/></sheetViews>` +
+    `<cols><col min="1" max="1" width="26" customWidth="1"/><col min="2" max="2" width="34" customWidth="1"/>` +
+    `<col min="3" max="3" width="44" customWidth="1"/><col min="4" max="4" width="18" customWidth="1"/></cols>` +
+    `<sheetData>${rowsXml}</sheetData></worksheet>`;
+}
+
+const XLSX_STATIC = {
+  "[Content_Types].xml":
+    `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>` +
+    `<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">` +
+    `<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>` +
+    `<Default Extension="xml" ContentType="application/xml"/>` +
+    `<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>` +
+    `<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>` +
+    `<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>` +
+    `</Types>`,
+  "_rels/.rels":
+    `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>` +
+    `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">` +
+    `<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>` +
+    `</Relationships>`,
+  "xl/workbook.xml":
+    `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>` +
+    `<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" ` +
+    `xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">` +
+    `<sheets><sheet name="النتائج" sheetId="1" r:id="rId1"/></sheets></workbook>`,
+  "xl/_rels/workbook.xml.rels":
+    `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>` +
+    `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">` +
+    `<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>` +
+    `<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>` +
+    `</Relationships>`,
+  "xl/styles.xml":
+    `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>` +
+    `<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">` +
+    `<fonts count="1"><font><sz val="11"/><name val="Arial"/></font></fonts>` +
+    `<fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills>` +
+    `<borders count="1"><border/></borders>` +
+    `<cellStyleXfs count="1"><xf/></cellStyleXfs>` +
+    `<cellXfs count="2"><xf/><xf applyAlignment="1"><alignment horizontal="right" vertical="center" wrapText="1"/></xf></cellXfs>` +
+    `</styleSheet>`,
+};
+
+// --- كاتب أرشيف مضغوط قياسي (تخزين بلا ضغط) ---
+const CRC_TABLE = (() => {
+  const t = new Uint32Array(256);
+  for (let n = 0; n < 256; n++){
+    let c = n;
+    for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1;
+    t[n] = c >>> 0;
+  }
+  return t;
+})();
+function crc32(bytes){
+  let c = 0xFFFFFFFF;
+  for (let i = 0; i < bytes.length; i++) c = CRC_TABLE[(c ^ bytes[i]) & 0xFF] ^ (c >>> 8);
+  return (c ^ 0xFFFFFFFF) >>> 0;
+}
+function makeZip(files){
+  const enc = new TextEncoder();
+  const parts = [], central = [];
+  let offset = 0;
+  const u16 = v => new Uint8Array([v & 255, (v >> 8) & 255]);
+  const u32 = v => new Uint8Array([v & 255, (v >> 8) & 255, (v >> 16) & 255, (v >>> 24) & 255]);
+  for (const [name, content] of files){
+    const nameB = enc.encode(name);
+    const data = enc.encode(content);
+    const crc = crc32(data);
+    const local = [new Uint8Array([0x50,0x4B,3,4]), u16(20), u16(0x0800), u16(0), u16(0), u16(0),
+      u32(crc), u32(data.length), u32(data.length), u16(nameB.length), u16(0), nameB, data];
+    central.push([new Uint8Array([0x50,0x4B,1,2]), u16(20), u16(20), u16(0x0800), u16(0), u16(0), u16(0),
+      u32(crc), u32(data.length), u32(data.length), u16(nameB.length), u16(0), u16(0), u16(0), u16(0),
+      u32(0), u32(offset), nameB]);
+    for (const p of local){ parts.push(p); offset += p.length; }
+  }
+  const centralStart = offset;
+  let centralSize = 0;
+  for (const entry of central) for (const p of entry){ parts.push(p); centralSize += p.length; }
+  parts.push(new Uint8Array([0x50,0x4B,5,6]), u16(0), u16(0), u16(files.length), u16(files.length),
+    u32(centralSize), u32(centralStart), u16(0));
+  return new Blob(parts, {type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
+}
+function excelBlob(rows){
+  return makeZip([
+    ["[Content_Types].xml", XLSX_STATIC["[Content_Types].xml"]],
+    ["_rels/.rels", XLSX_STATIC["_rels/.rels"]],
+    ["xl/workbook.xml", XLSX_STATIC["xl/workbook.xml"]],
+    ["xl/_rels/workbook.xml.rels", XLSX_STATIC["xl/_rels/workbook.xml.rels"]],
+    ["xl/styles.xml", XLSX_STATIC["xl/styles.xml"]],
+    ["xl/worksheets/sheet1.xml", sheetXml(rows)],
+  ]);
+}
+
+function renderDone(){
+  const total = Object.values(state.timings).reduce((a,b)=>a+b, 0);
+  app.replaceChildren();
+  const box = el("div");
+  box.appendChild(el("h1", null, "اكتمل الاستبيان"));
+  box.appendChild(el("p", null, `استغرقت تقريباً: ${Math.round(total/60)} دقيقة`));
+  const table = el("table");
+  const head = el("tr"); head.appendChild(el("th", null, "القسم")); head.appendChild(el("th", null, "الوقت بالثواني"));
+  table.appendChild(head);
+  for (const s of SECTIONS){
+    const tr = el("tr");
+    tr.appendChild(el("td", null, s.title));
+    tr.appendChild(el("td", null, String(state.timings[s.id] || 0)));
+    table.appendChild(tr);
+  }
+  box.appendChild(table);
+
+  // Feature D — معاينة توافق توضيحية (تجريبية) + ملخص جاهزية حقيقي
+  box.appendChild(el("h2", null, "معاينة مبدئية"));
+  const nCrit = setCriteria(), nDb = dbCount();
+  const ready = el("div", "note");
+  ready.textContent =
+    `حددت ${nCrit} معياراً فعّالاً، منها ${nDb} شرطاً حاسماً.\n` +
+    (nCrit >= MIN_CRITERIA ? "✓ لديك معايير كافية لبدء حساب التوافق." : `تحتاج ${MIN_CRITERIA} معايير على الأقل (ينقصك ${MIN_CRITERIA-nCrit}).`) +
+    (nDb <= DB_CAP ? "" : "\n⚠ تجاوزت حد الشروط الحاسمة.");
+  box.appendChild(ready);
+
+  const preview = el("div", "preview");
+  const demo = illustrativeScore();
+  preview.appendChild(el("div", null, "توافقك مع شريك افتراضي متوازن (مثال توضيحي فقط):"));
+  if (demo.blocked){
+    preview.appendChild(el("div", "big", "غير متوافق"));
+    preview.appendChild(el("div", "muted", "في المثال لم يتحقق أحد شروطك الحاسمة، لذا لا يظهر هذا الشريك إطلاقاً — هكذا تعمل الشروط الحاسمة."));
+  } else {
+    preview.appendChild(el("div", "big", demo.score + "٪"));
+    preview.appendChild(el("div", "muted", "رقم توضيحي لتقريب الفكرة فقط، وليس تقييماً لشخص حقيقي. التوافق الفعلي يُحسب بين طرفين حقيقيين."));
+  }
+  box.appendChild(preview);
+
+  box.appendChild(el("h2", null, "رأيك يهمنا"));
+
+  const fb = {};
+  const addSelect = (key, label, options) => {
+    const fg = el("div", "fg");
+    fg.appendChild(el("label", null, label));
+    fg.appendChild(makeSelect(options, "", e => { fb[key] = e.target.value; }));
+    box.appendChild(fg);
+  };
+  const addText = (key, label) => {
+    const fg = el("div", "fg");
+    fg.appendChild(el("label", null, label));
+    const t = el("textarea");
+    t.addEventListener("change", e => { fb[key] = e.target.value; });
+    fg.appendChild(t);
+    box.appendChild(fg);
+  };
+  addSelect("fatigue", "هل شعرت بالإرهاق أثناء الإجابة؟", ["لا","قليلاً","نعم، كان طويلاً"]);
+  addText("confusing", "أي الأقسام كان مربكاً أو غير مفهوم؟");
+  addSelect("dealbreakerClear", "هل فهمت الفرق بين شرط حاسم وأساسي؟", ["نعم واضح","إلى حد ما","لا، محتاج شرحاً"]);
+  addText("other", "اقتراحات أخرى");
+
+  const reviewBtn = el("button", "sec", "مراجعة وتعديل الإجابات");
+  reviewBtn.addEventListener("click", () => {
+    state.feedback = fb; state.section = 0; state.enteredAt = Date.now(); save(); render(); window.scrollTo(0,0);
+  });
+  box.appendChild(reviewBtn);
+
+  const nav = el("div", "nav");
+  const expJson = el("button", null, "تنزيل الإجابات (ملف JSON)");
+  expJson.addEventListener("click", () => {
+    state.feedback = fb; save();
+    download("spike2a-result.json", "application/json",
+      JSON.stringify({version:"spike2a-v0.4", exportedAt:new Date().toISOString(), totalSeconds:total, ...state}, null, 2));
+  });
+  const expXls = el("button", "sec", "تنزيل كملف إكسل");
+  expXls.addEventListener("click", () => {
+    state.feedback = fb; save();
+    const blob = excelBlob(collectRows());
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "spike2a-result.xlsx";
+    a.click();
+  });
+  nav.appendChild(expJson);
+  nav.appendChild(expXls);
+  box.appendChild(nav);
+  box.appendChild(el("p", "muted", "ينزل ملف — أرسله لصاحب التجربة. لا يُرسل أي شيء تلقائياً."));
+  app.appendChild(box);
+}
+
+render();
+</script>
+</body>
+</html>
