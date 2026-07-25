@@ -44,6 +44,11 @@
     background:linear-gradient(to right, transparent, #0d6e4f77, transparent); }
   .divider span { font-size:1.2rem; }
   .thanks { text-align:center; color:#0d6e4f; font-weight:600; margin:.75rem 0; font-size:1.1rem; }
+  .bubble { background:#eef6f2; border:1px solid #0d6e4f22; border-radius:14px 14px 14px 4px;
+    padding:.8rem 1rem; margin:.75rem 0; font-size:1.15rem; line-height:1.7; color:#123; }
+  .bubble.bridge { background:#0d6e4f; color:#fff; border-color:#0d6e4f; font-weight:600; }
+  .qwrap { animation:rise .25s ease; }
+  @keyframes rise { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }
   select, input { width:100%; font-size:1rem; font-family:inherit; padding:.55rem .7rem;
     border:1px solid #c9c9c9; border-radius:6px; background:#fff; }
   .kidrow { display:flex; gap:.5rem; align-items:center; margin-top:.4rem; }
@@ -265,7 +270,7 @@ const SECTIONS = [
 ];
 
 const LS_KEY = "spike2a_v03";
-let state = { answers:{}, imp:{}, section:0, timings:{}, enteredAt:Date.now(), startedAt:Date.now(), feedback:{}, started:false };
+let state = { answers:{}, imp:{}, section:0, timings:{}, enteredAt:Date.now(), startedAt:Date.now(), feedback:{}, started:false, finished:false, stepKey:null };
 try { const saved = JSON.parse(localStorage.getItem(LS_KEY)); if (saved && confirm("لديك إجابات محفوظة، هل تريد المتابعة من حيث توقفت؟")) state = saved; else localStorage.removeItem(LS_KEY); } catch {}
 
 const app = document.getElementById("app");
@@ -373,9 +378,10 @@ function buildImportControl(){
         }
         state = { answers:data.answers??{}, imp:data.imp??{}, section:0,
           timings:data.timings??{}, enteredAt:Date.now(), startedAt:Date.now(),
-          feedback:data.feedback??{}, started:true };
+          feedback:data.feedback??{}, started:true, finished:false, stepKey:null };
+        state.stepKey = askableSteps()[0].f.id;
         save(); render();
-        alert("تم استيراد إجاباتك. يمكنك الآن مراجعة أي قسم وتعديله من قائمة التنقل بالأعلى.");
+        alert("تم استيراد إجاباتك. يمكنك الآن مراجعتها والتعديل عليها سؤالاً بسؤال.");
       } catch { alert("تعذر قراءة الملف"); }
     };
     reader.readAsText(file);
@@ -429,7 +435,8 @@ function renderWelcome(){
   const nav = el("div", "nav");
   const start = el("button", null, "ابدأ الاستبيان");
   start.addEventListener("click", () => {
-    state.started = true; state.section = 0;
+    state.started = true; state.finished = false;
+    state.stepKey = askableSteps()[0].f.id;
     state.enteredAt = Date.now(); save(); render(); window.scrollTo(0,0);
   });
   nav.appendChild(start);
@@ -438,8 +445,234 @@ function renderWelcome(){
   app.appendChild(buildImportControl());
 }
 
+// ── المحرّك الحواري: سؤال واحد في كل مرة بصوت ودود ──
+
+// يبني عنصر حقل واحد كاملاً (يُعاد استخدامه). advance اختياري للانتقال التلقائي.
+function renderOneField(sec, f, dbBox, advance){
+  const fg = el("div", "fg");
+  fg.dataset.fid = f.id;
+  const lblRow = el("label", null, f.l);
+  const info = el("span", "info", "ⓘ");
+  info.title = "لماذا نسأل / من يرى هذه المعلومة";
+  lblRow.appendChild(info);
+  fg.appendChild(lblRow);
+  const note = el("div", "note", visNoteText(f, sec));
+  note.style.display = "none";
+  info.addEventListener("click", () => { note.style.display = note.style.display === "none" ? "block" : "none"; });
+  fg.appendChild(note);
+  if (f.h) fg.appendChild(el("div", "help", f.h));
+  const clearMissing = () => fg.classList.remove("missing");
+  const onAnswer = (e) => {
+    state.answers[f.id] = e.target.value; save(); clearMissing();
+    if (RERENDER_ON.has(f.id)) render();
+    else if (advance) advance();
+  };
+  if (f.t === "select"){
+    const opts = f.pnts ? [...optsOf(f), PNTS] : optsOf(f);
+    const handler = f.req
+      ? (e) => { state.answers[f.id] = e.target.value; save(); clearMissing();
+                 if (advance && NO_PREF.has(e.target.value)) advance(); else render(); }
+      : onAnswer;
+    fg.appendChild(makeSelect(opts, state.answers[f.id], handler));
+  } else if (f.t === "multi"){
+    const wrap = el("div", "multi");
+    const chosen = Array.isArray(state.answers[f.id]) ? state.answers[f.id] : [];
+    for (const o of f.o){
+      const lab = el("label");
+      const cb = el("input"); cb.type = "checkbox"; cb.checked = chosen.includes(o);
+      cb.addEventListener("change", () => {
+        const cur = Array.isArray(state.answers[f.id]) ? state.answers[f.id] : [];
+        state.answers[f.id] = cb.checked ? [...cur, o] : cur.filter(x=>x!==o);
+        save(); clearMissing();
+      });
+      lab.appendChild(cb); lab.appendChild(el("span", null, o));
+      wrap.appendChild(lab);
+    }
+    fg.appendChild(wrap);
+  } else if (f.t === "slider"){
+    const wrap = el("div", "single");
+    const readout = el("div", "hint", state.answers[f.id] ? sliderText(f) : "حرّك المؤشر لاختيار القيمة");
+    const r = makeInput("range", state.answers[f.id] ?? Math.round((f.min+f.max)/2), {min:f.min, max:f.max}, ()=>{});
+    r.addEventListener("input", (e) => {
+      state.answers[f.id] = e.target.value; save(); clearMissing();
+      readout.textContent = sliderText(f);
+      const hint = document.getElementById("bmiHint");
+      if (hint) hint.textContent = bmiText();
+    });
+    wrap.appendChild(r); wrap.appendChild(readout); fg.appendChild(wrap);
+    if (f.bmi){ const hint = el("div", "hint", bmiText()); hint.id = "bmiHint"; fg.appendChild(hint); }
+  } else if (f.t === "date"){
+    fg.appendChild(makeInput("date", state.answers[f.id], {}, onAnswer));
+  } else if (f.t === "text"){
+    fg.appendChild(makeInput("text", state.answers[f.id], {}, onAnswer));
+  } else if (f.t === "kidages"){
+    const n = kidsN();
+    for (let i = 1; i <= n; i++){
+      const row = el("div", "kidrow");
+      row.appendChild(el("span", null, `عمر الابن/الابنة ${i}`));
+      row.appendChild(makeInput("number", state.answers[`kidAge_${i}`], {min:0, max:45},
+        e => { state.answers[`kidAge_${i}`] = e.target.value; save(); clearMissing(); }));
+      fg.appendChild(row);
+    }
+    if ((state.answers.kidsCount||"") === "7+") fg.appendChild(el("div", "help", "يكفي إدخال أعمار السبعة الأكبر"));
+  } else if (f.t === "range"){
+    const loKey = f.id+"_min", hiKey = f.id+"_max";
+    if (!state.answers[loKey]) state.answers[loKey] = String(f.lo);
+    if (!state.answers[hiKey]) state.answers[hiKey] = String(f.hi);
+    const dual = el("div", "dual");
+    const track = el("div", "track"); const fillseg = el("div", "fillseg");
+    dual.appendChild(track); dual.appendChild(fillseg);
+    const readout = el("div", "hint", rangeText(f));
+    const pct = v => (v - f.min) / (f.max - f.min) * 100;
+    const paint = () => { const lo=+state.answers[loKey], hi=+state.answers[hiKey]; fillseg.style.right=pct(lo)+"%"; fillseg.style.width=Math.max(0,pct(hi)-pct(lo))+"%"; };
+    const mk = (key) => {
+      const r = makeInput("range", state.answers[key], {min:f.min, max:f.max}, ()=>{});
+      r.addEventListener("input", (e) => {
+        state.answers[key] = e.target.value;
+        let lo=+state.answers[loKey], hi=+state.answers[hiKey];
+        if (lo>hi){ [state.answers[loKey],state.answers[hiKey]]=[String(hi),String(lo)]; }
+        readout.textContent = rangeText(f); paint(); save();
+      });
+      return r;
+    };
+    dual.appendChild(mk(loKey)); dual.appendChild(mk(hiKey)); paint();
+    fg.appendChild(dual); fg.appendChild(readout);
+  }
+  if (f.req){
+    const val = state.answers[f.id];
+    if (val && NO_PREF.has(val)){
+      state.imp[f.id] = "لا يهم";
+      fg.appendChild(el("div", "help", "اخترت «بلا تفضيل» لهذه الصفة، فلا حاجة لتحديد أهميتها."));
+    } else {
+      const impWrap = el("div", "imp");
+      const impSel = el("select");
+      const first = el("option", null, "ما مدى أهمية هذه الصفة لك؟"); first.value = ""; impSel.appendChild(first);
+      for (const o of IMP){ const opt = el("option", null, IMP_LABEL[o] || o); opt.value = o; if (o === state.imp[f.id]) opt.selected = true; impSel.appendChild(opt); }
+      impSel.addEventListener("change", (e) => {
+        if (e.target.value === "شرط حاسم" && state.imp[f.id] !== "شرط حاسم" && dbCount() >= DB_CAP){
+          e.target.value = state.imp[f.id] ?? "";
+          alert(`وصلت للحد الأقصى: ${DB_CAP} شروط حاسمة فقط. خفّف شرطاً آخر أولاً.`);
+          return;
+        }
+        state.imp[f.id] = e.target.value; save(); fg.classList.remove("missing");
+        if (dbBox){ dbBox.textContent = `شروطك الحاسمة: ${dbCount()} من ${DB_CAP}`; dbBox.className = "db" + (dbCount()>=DB_CAP ? " full" : ""); }
+        if (advance) advance();
+      });
+      impWrap.appendChild(impSel); fg.appendChild(impWrap);
+    }
+  }
+  return fg;
+}
+
+// رسائل تمهيدية ودّية بصوت "المستشار" لكل قسم
+const BRIDGES = {
+  basic: "في البداية، خلّينا نتعرّف عليك قليلاً 🌿",
+  residence: "طيّب… أين مكانك؟",
+  looks: "نحبّ أن نعرف شكلك ومظهرك العام.",
+  deen: "الجانب الأغلى — علاقتك بربّك. أجب بصدقٍ وراحة.",
+  social: "نتكلّم قليلاً عن وضعك الاجتماعي.",
+  edu: "وعن تعليمك ودراستك.",
+  habits: "أسئلة سريعة عن عاداتك اليومية.",
+  work: "عن عملك ووضعك المادي — بلا حرج.",
+  wedding: "نصل إلى جزء مهم: رؤيتك للترتيبات المادية والزفاف.",
+  afterMarriage: "وبعد الزواج بإذن الله — كيف تتخيّل حياتكما؟",
+  skills: "وشيء عن مهاراتك في الحياة اليومية.",
+  reqs: "الآن… حدّثنا عن شريك حياتك الذي تتمنّاه، وكم تهمّك كل صفة.",
+};
+
+function askableSteps(){
+  const out = [];
+  for (const sec of SECTIONS) for (const f of visibleFields(sec)) out.push({sec, f});
+  return out;
+}
+
+function fieldError(f){
+  if (f.t === "text" || f.t === "multi") return null;
+  if (f.t === "range"){
+    const lo=+state.answers[f.id+"_min"], hi=+state.answers[f.id+"_max"];
+    if (lo && hi && lo>hi) return "النطاق غير صحيح";
+    if (f.id==="rAge" && lo && lo<18) return "الحد الأدنى للعمر ثمانية عشر عاماً";
+    if (f.req && !state.imp[f.id] && !NO_PREF.has(state.answers[f.id])) return "اختر درجة الأهمية";
+    return null;
+  }
+  if (f.t === "slider") return state.answers[f.id] ? null : "حرّك المؤشر لاختيار القيمة";
+  if (f.t === "kidages"){ const n=kidsN(); for(let i=1;i<=n;i++) if(!state.answers[`kidAge_${i}`]) return "أكمل أعمار الأولاد"; return null; }
+  if (!state.answers[f.id]) return "من فضلك أجب هذا السؤال";
+  if (f.id==="dob"){ const age=(Date.now()-new Date(state.answers.dob).getTime())/31557600000; if(!(age>=18)) return "التسجيل لمن أتم الثامنة عشرة فقط"; }
+  if (f.req && !state.imp[f.id] && !NO_PREF.has(state.answers[f.id])) return "اختر درجة الأهمية";
+  return null;
+}
+
+function accTime(secId){ state.timings[secId] = (state.timings[secId]||0) + Math.round((Date.now()-state.enteredAt)/1000); state.enteredAt = Date.now(); }
+
+function renderChat(){
+  app.replaceChildren();
+  const steps = askableSteps();
+  if (!steps.length) return;
+  let idx = steps.findIndex(s => s.f.id === state.stepKey);
+  if (idx < 0) idx = 0;
+  const sec = steps[idx].sec, f = steps[idx].f;
+
+  const h1 = el("h1", null, "دعنا نتعرّف عليك ");
+  h1.appendChild(el("span","tag","نسخة تجريبية"));
+  app.appendChild(h1);
+  app.appendChild(el("p","muted", `سؤال ${idx+1} من ${steps.length}`));
+  const bar=el("div","bar"); const fill=el("div"); fill.style.width=Math.round(idx/steps.length*100)+"%"; bar.appendChild(fill); app.appendChild(bar);
+
+  const wrap = el("div","qwrap");
+  const firstOfSec = idx===0 || steps[idx-1].sec.id !== sec.id;
+  if (firstOfSec && BRIDGES[sec.id]) wrap.appendChild(el("div","bubble bridge", BRIDGES[sec.id]));
+  wrap.appendChild(el("div","bubble", f.q || f.l));
+
+  let dbBox=null;
+  if (sec.id==="reqs"){ dbBox=el("div","db"+(dbCount()>=DB_CAP?" full":""), `شروطك الحاسمة: ${dbCount()} من ${DB_CAP}`); wrap.appendChild(dbBox); }
+
+  const fg = renderOneField(sec, f, dbBox, () => goNext());
+  const lbl = fg.querySelector("label"); if (lbl) lbl.style.display = "none"; // السؤال ظاهر في الفقاعة
+  wrap.appendChild(fg);
+
+  const err = el("p","error"); wrap.appendChild(err);
+  const nav = el("div","nav");
+  if (idx>0){
+    const back = el("button","sec","السابق");
+    back.addEventListener("click", ()=>{ accTime(sec.id); state.stepKey = steps[idx-1].f.id; save(); render(); window.scrollTo(0,0); });
+    nav.appendChild(back);
+  }
+  const last = idx===steps.length-1;
+  const next = el("button", null, last ? "تم" : "التالي");
+  next.addEventListener("click", ()=>{ const e = fieldError(f); if (e){ err.textContent = e; fg.classList.add("missing"); return; } goNext(); });
+  nav.appendChild(next);
+  wrap.appendChild(nav);
+  app.appendChild(wrap);
+}
+
+function goNext(){
+  const steps = askableSteps();
+  let idx = steps.findIndex(s=>s.f.id===state.stepKey);
+  if (idx<0) idx=0;
+  const f = steps[idx].f, secId = steps[idx].sec.id;
+  const e = fieldError(f);
+  if (e){
+    render();
+    const box=document.querySelector(`.fg[data-fid="${f.id}"]`); if(box) box.classList.add("missing");
+    const ep=document.querySelector(".error"); if(ep) ep.textContent=e;
+    return;
+  }
+  accTime(secId);
+  if (idx >= steps.length-1){
+    if (setCriteria() < MIN_CRITERIA){ alert(`اختر ${MIN_CRITERIA} صفات على الأقل تهمّك (غير «لا يهم») حتى يعمل التوافق.`); return; }
+    state.finished = true; save(); render(); window.scrollTo(0,0); return;
+  }
+  state.stepKey = steps[idx+1].f.id; save(); render(); window.scrollTo(0,0);
+}
+
 function render(){
   if (!state.started) return renderWelcome();
+  if (state.finished) return renderDone();
+  return renderChat();
+}
+
+function renderSectionLegacy(){
   const sec = SECTIONS[state.section];
   if (!sec) return renderDone();
   app.replaceChildren();
@@ -945,7 +1178,8 @@ function renderDone(){
 
   const reviewBtn = el("button", "sec", "مراجعة وتعديل الإجابات");
   reviewBtn.addEventListener("click", () => {
-    state.feedback = fb; state.section = 0; state.enteredAt = Date.now(); save(); render(); window.scrollTo(0,0);
+    state.feedback = fb; state.finished = false; state.stepKey = askableSteps()[0].f.id;
+    state.enteredAt = Date.now(); save(); render(); window.scrollTo(0,0);
   });
   box.appendChild(reviewBtn);
 
