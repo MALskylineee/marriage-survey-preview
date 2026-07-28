@@ -10,78 +10,302 @@
      missing-field highlighting, RTL Excel export, jewelry/tattoo fields with
      requirement counterparts (profile<->requirement correlation principle). -->
 <style>
+  /* ============================================================
+     «بيت» — ورقٌ دافئ وظلٌّ أخضر
+     لوحة مستوحاة من بيت مصري في ضوء العصر: حجر جيري دافئ،
+     أخضر زيتوني عميق، ونحاسٌ لا يظهر إلا في اللحظات ذات المعنى.
+     فاتح فقط · أدنى قياس ١٦ بكسل · بلا أي مورد خارجي.
+     ============================================================ */
+  :root{
+    --paper:#FBF7F0;        /* ورق حجري دافئ بدل الأبيض العيادي */
+    --paper-2:#F6F0E6;      /* غائر خفيف للحقول والآبار */
+    --paper-3:#FFFDF9;      /* بطاقات مرتفعة */
+    --ink:#2B2622;          /* أسود دافئ، لا رمادي بارد */
+    --ink-soft:#6E6459;
+    --ink-faint:#9A8F82;
+    --green:#1D5C46;        /* أخضر فناء المسجد */
+    --green-deep:#123B2D;
+    --green-soft:#E7EFE9;
+    --green-line:#1D5C4626;
+    --brass:#A8763A;        /* نحاس — للمعنى لا للزينة */
+    --brass-deep:#7E5522;
+    --brass-soft:#F7EEDF;
+    --brass-line:#A8763A44;
+    --rose:#9C3B30;         /* للتنبيه، هادئ لا صارخ */
+    --rose-soft:#FBEDEA;
+    --r-sm:10px; --r-md:14px; --r-lg:20px; --r-pill:999px;
+    --sh-1:0 1px 2px rgba(43,38,34,.05), 0 1px 1px rgba(43,38,34,.04);
+    --sh-2:0 2px 4px rgba(43,38,34,.04), 0 10px 24px -12px rgba(43,38,34,.18);
+    --sh-in:inset 0 1px 2px rgba(43,38,34,.05);
+    --ease:cubic-bezier(.22,.68,.36,1);
+    /* نسخ عربية ذات طابع للعناوين، وأخرى واضحة للحقول */
+    --font-display:"Sakkal Majalla","Traditional Arabic","Noto Naskh Arabic","Geeza Pro","Amiri","Segoe UI",serif;
+    --font-body:"Segoe UI","Tajawal","Cairo","Noto Sans Arabic",Tahoma,sans-serif;
+  }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  html { font-size: 16px; }
-  body { background:#fff; color:#1a1a1a; font-family:"Cairo","Tajawal","Segoe UI",Tahoma,sans-serif; }
-  .wrap { max-width: 640px; margin: 0 auto; padding: 1.5rem 1rem 4rem; }
-  h1 { font-size: 1.5rem; margin-bottom: .25rem; }
-  h2 { font-size: 1.2rem; margin: 1rem 0 .5rem; color:#0d6e4f; }
-  .muted { color:#5f5f5f; font-size: 1rem; }
-  .bar { height: 10px; background:#e8e8e8; border-radius:5px; margin: .75rem 0 1.25rem; overflow:hidden; }
-  .bar > div { height:100%; background:#0d6e4f; width:0; transition:width .3s; }
-  .fg { margin-bottom: 1rem; border-radius:6px; padding:.15rem .3rem; }
-  .fg.missing { background:#fdecea; outline:2px solid #e08a84; }
-  label { display:block; font-weight:600; margin-bottom:.3rem; }
-  .help { font-size:.95rem; color:#5f5f5f; margin-bottom:.3rem; }
-  .hint { font-size:.95rem; color:#0d6e4f; margin-top:.3rem; }
-  .info { display:inline-flex; align-items:center; justify-content:center; width:20px; height:20px;
-    border-radius:50%; border:1px solid #0d6e4f; color:#0d6e4f; font-size:.8rem; cursor:pointer;
-    margin-inline-start:.4rem; background:#f4faf7; }
-  .note { background:#f4faf7; border:1px solid #0d6e4f33; border-radius:6px; padding:.5rem .7rem;
-    font-size:.9rem; color:#333; margin:.3rem 0; white-space:pre-line; }
+  html { font-size: 16px; -webkit-text-size-adjust:100%; }
+  body {
+    background:var(--paper); color:var(--ink);
+    font-family:var(--font-body); line-height:1.65;
+    /* حبيبات ورق خفيفة جداً — تُحسّ ولا تُرى */
+    background-image:
+      radial-gradient(circle at 18% 12%, #1D5C4608, transparent 42%),
+      radial-gradient(circle at 88% 4%, #A8763A0A, transparent 38%);
+    background-attachment:fixed;
+  }
+  .wrap { max-width: 640px; margin: 0 auto; padding: .85rem 1rem 2.4rem; }
+
+  h1 { font-family:var(--font-display); font-size:1.65rem; font-weight:700;
+       letter-spacing:.2px; margin-bottom:.25rem; color:var(--green-deep); line-height:1.5; }
+  h2 { font-family:var(--font-display); font-size:1.3rem; margin:1.1rem 0 .5rem;
+       color:var(--green); font-weight:700; line-height:1.5; }
+  .muted { color:var(--ink-soft); font-size: 1rem; }
+
+  /* شريط التقدم — نبضة هادئة لا شريط مصنع */
+  .bar { height: 8px; background:#EAE2D6; border-radius:var(--r-pill);
+         margin:.35rem 0 .9rem; overflow:hidden; box-shadow:var(--sh-in); }
+  .bar > div { height:100%; width:0; border-radius:var(--r-pill);
+    background:linear-gradient(90deg, var(--green-deep), var(--green) 60%, #2E7A5E);
+    transition:width .55s var(--ease); }
+
+  .fg { margin-bottom:.7rem; border-radius:var(--r-sm); padding:.15rem .3rem;
+        transition:background .25s var(--ease); }
+  .fg.missing { background:var(--rose-soft); outline:2px solid #D9A79F; outline-offset:2px; }
+  label { display:block; font-weight:600; margin-bottom:.35rem; color:var(--ink); }
+  .help { font-size:.95rem; color:var(--ink-soft); margin-bottom:.35rem; line-height:1.6; }
+  .hint { font-size:.95rem; color:var(--green); margin-top:.2rem; }
+
+  .info { display:inline-flex; align-items:center; justify-content:center; width:21px; height:21px;
+    border-radius:50%; border:1px solid var(--brass-line); color:var(--brass-deep); font-size:.78rem;
+    cursor:pointer; margin-inline-start:.4rem; background:var(--brass-soft);
+    transition:transform .2s var(--ease), background .2s var(--ease); }
+  .info:hover { transform:scale(1.12); background:#F1E2CB; }
+
+  .note { background:var(--paper-2); border:1px solid #E4DACB; border-radius:var(--r-md);
+    padding:.65rem .85rem; font-size:.95rem; color:var(--ink); margin:.4rem 0;
+    white-space:pre-line; line-height:1.75; box-shadow:var(--sh-1); }
+
   .multi { display:flex; flex-wrap:wrap; gap:.5rem; }
-  .multi label { display:inline-flex; align-items:center; gap:.35rem; font-weight:400;
-    border:1px solid #c9c9c9; border-radius:6px; padding:.4rem .7rem; cursor:pointer; margin:0; }
-  .multi input { width:auto; }
-  .preview { background:#eef6f2; border:1px solid #0d6e4f55; border-radius:8px; padding:1rem; margin:1rem 0; }
-  .preview .big { font-size:2rem; font-weight:700; color:#0d6e4f; }
-  .basmala { text-align:center; margin:.5rem 0 1.25rem; }
-  .basmala .salam { color:#5f5f5f; font-size:1rem; margin-bottom:.6rem; }
-  .basmala .bism { color:#0d6e4f; font-size:1.6rem; font-weight:700; line-height:1.8; }
-  .basmala .dua { color:#0d6e4f; font-size:1.05rem; margin-top:.6rem; }
-  .divider { display:flex; align-items:center; gap:.6rem; color:#0d6e4f; margin:.75rem auto; max-width:280px; }
+  .multi label { display:inline-flex; align-items:center; gap:.4rem; font-weight:400;
+    border:1px solid #DFD5C6; border-radius:var(--r-pill); padding:.45rem .85rem; cursor:pointer;
+    margin:0; background:var(--paper-3); box-shadow:var(--sh-1);
+    transition:border-color .2s var(--ease), background .2s var(--ease), transform .12s var(--ease); }
+  .multi label:hover { border-color:var(--green); }
+  .multi label:active { transform:scale(.98); }
+  .multi label:has(input:checked) { background:var(--green-soft); border-color:var(--green);
+    color:var(--green-deep); font-weight:600; }
+  .multi input { width:auto; accent-color:var(--green); }
+
+  .preview { background:var(--green-soft); border:1px solid var(--green-line);
+    border-radius:var(--r-md); padding:1rem; margin:1rem 0; }
+  .preview .big { font-size:2rem; font-weight:700; color:var(--green); font-family:var(--font-display); }
+
+  /* الافتتاح والدعاء */
+  .basmala { text-align:center; margin:.6rem 0 1.3rem; }
+  .basmala .salam { color:var(--ink-soft); font-size:1rem; margin-bottom:.6rem; }
+  .basmala .bism { color:var(--green-deep); font-size:1.85rem; font-weight:700; line-height:1.9;
+    font-family:var(--font-display); letter-spacing:.3px; }
+  .basmala .dua { color:var(--green); font-size:1.08rem; margin-top:.6rem; font-family:var(--font-display); }
+  .divider { display:flex; align-items:center; gap:.7rem; color:var(--brass);
+    margin:.85rem auto; max-width:300px; }
   .divider::before, .divider::after { content:""; flex:1; height:1px;
-    background:linear-gradient(to right, transparent, #0d6e4f77, transparent); }
-  .divider span { font-size:1.2rem; }
-  .thanks { text-align:center; color:#0d6e4f; font-weight:600; margin:.75rem 0; font-size:1.1rem; }
-  .bubble { background:#eef6f2; border:1px solid #0d6e4f22; border-radius:14px 14px 14px 4px;
-    padding:.8rem 1rem; margin:.75rem 0; font-size:1.15rem; line-height:1.7; color:#123; }
-  .bubble.bridge { background:#0d6e4f; color:#fff; border-color:#0d6e4f; font-weight:600; }
-  .qwrap { animation:rise .25s ease; }
-  @keyframes rise { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }
-  select, input { width:100%; font-size:1rem; font-family:inherit; padding:.55rem .7rem;
-    border:1px solid #c9c9c9; border-radius:6px; background:#fff; }
-  .kidrow { display:flex; gap:.5rem; align-items:center; margin-top:.4rem; }
-  .kidrow span { min-width:6.5rem; }
-  /* one visual slider, two handles */
-  .dual { position:relative; height:36px; margin-top:.4rem; }
-  .dual .track { position:absolute; top:16px; right:0; left:0; height:6px; background:#e8e8e8; border-radius:3px; }
-  .dual .fillseg { position:absolute; top:16px; height:6px; background:#0d6e4f; border-radius:3px; }
-  .dual input[type=range] { position:absolute; top:8px; right:0; left:0; width:100%;
-    background:none; border:none; padding:0; pointer-events:none; -webkit-appearance:none; appearance:none; }
+    background:linear-gradient(to right, transparent, var(--brass-line) 35%, var(--brass-line) 65%, transparent); }
+  .divider span { font-size:1.35rem; line-height:1; opacity:.85; }
+  .thanks { text-align:center; color:var(--green); font-weight:600; margin:.8rem 0; font-size:1.1rem; }
+
+  /* فقاعات الحوار — الصوت الذي يرافق المستخدم */
+  .bubble { background:var(--paper-3); border:1px solid #E7DDCE; border-radius:var(--r-lg) var(--r-lg) var(--r-lg) 6px;
+    padding:.8rem 1rem; margin:.55rem 0; font-size:1.1rem; line-height:1.75; color:var(--ink);
+    box-shadow:var(--sh-1); }
+  .bubble.bridge { border:none; color:#F7F2E9; font-weight:600; font-family:var(--font-display);
+    font-size:1.22rem; letter-spacing:.2px; box-shadow:var(--sh-2);
+    background:linear-gradient(135deg, var(--green-deep), var(--green) 70%, #276B52);
+    position:relative; overflow:hidden; }
+  /* زخرفة عربية خافتة داخل شريط القسم */
+  .bubble.bridge::after { content:"۞"; position:absolute; inset-inline-end:.6rem; top:50%;
+    transform:translateY(-50%); font-size:2.8rem; opacity:.16; line-height:1; pointer-events:none; }
+  .taprow { text-align:left; margin-bottom:.25rem; }
+  .qwrap { animation:rise .34s var(--ease) both; }
+  .qwrap .fg { animation:rise .38s var(--ease) both; }
+  .qwrap .fg:nth-of-type(1){animation-delay:.03s} .qwrap .fg:nth-of-type(2){animation-delay:.08s}
+  .qwrap .fg:nth-of-type(3){animation-delay:.13s} .qwrap .fg:nth-of-type(4){animation-delay:.18s}
+  .qwrap .fg:nth-of-type(5){animation-delay:.23s}
+  @keyframes rise { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:none; } }
+  @media (prefers-reduced-motion: reduce){
+    .qwrap, .qwrap .fg { animation:none !important; }
+    .bar > div { transition:none; }
+  }
+
+  /* الحقول */
+  select, input, textarea { width:100%; font-size:1rem; font-family:inherit; color:var(--ink);
+    padding:.62rem .8rem; border:1px solid #DFD5C6; border-radius:var(--r-sm);
+    background:var(--paper-3); box-shadow:var(--sh-1);
+    transition:border-color .2s var(--ease), box-shadow .2s var(--ease); }
+  /* السهم يقع في نهاية السطر (يسار في العربية) والنص يبدأ من اليمين */
+  select { appearance:none; -webkit-appearance:none;
+    padding-inline-start:.8rem; padding-inline-end:2.2rem;
+    background-image:linear-gradient(45deg,transparent 50%,var(--green) 50%),
+                     linear-gradient(135deg,var(--green) 50%,transparent 50%);
+    background-position:.9rem calc(50% + 1px), 1.24rem calc(50% + 1px);
+    background-size:7px 7px, 7px 7px; background-repeat:no-repeat; }
+  select:focus, input:focus, textarea:focus { outline:none; border-color:var(--green);
+    box-shadow:0 0 0 3px #1D5C461f; }
+  textarea { min-height:76px; line-height:1.7; }
+  /* صفوف أعمار الأولاد مضغوطة — سبعة صفوف يجب أن تتسع في شاشة واحدة */
+  .kidrow { display:flex; gap:.5rem; align-items:center; margin-top:.14rem; }
+  .kidrow span { min-width:6.5rem; color:var(--ink-soft); }
+  .kidrow input { padding:.38rem .6rem; }
+
+  /* المنزلقة المزدوجة */
+  .dual { position:relative; height:30px; margin-top:.3rem; }
+  .dual .track { position:absolute; top:13px; right:0; left:0; height:6px;
+    background:#EAE2D6; border-radius:var(--r-pill); box-shadow:var(--sh-in); }
+  .dual .fillseg { position:absolute; top:13px; height:6px; border-radius:var(--r-pill);
+    background:linear-gradient(90deg,var(--green),#2E7A5E); }
+  .dual input[type=range] { position:absolute; top:5px; right:0; left:0; width:100%;
+    background:none; border:none; padding:0; box-shadow:none;
+    pointer-events:none; -webkit-appearance:none; appearance:none; }
   .dual input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; appearance:none;
-    width:22px; height:22px; border-radius:50%; background:#0d6e4f; border:2px solid #fff;
-    box-shadow:0 0 3px rgba(0,0,0,.4); pointer-events:auto; cursor:grab; }
-  .dual input[type=range]::-moz-range-thumb { width:22px; height:22px; border-radius:50%;
-    background:#0d6e4f; border:2px solid #fff; box-shadow:0 0 3px rgba(0,0,0,.4);
-    pointer-events:auto; cursor:grab; }
-  .single input[type=range] { padding:0; accent-color:#0d6e4f; }
-  .imp { margin-top:.35rem; }
-  .imp select { border-color:#0d6e4f55; background:#f4faf7; }
-  .db { position:sticky; top:0; z-index:5; background:#fff8e6; border:1px solid #e6cc80;
-    border-radius:8px; padding:.5rem .8rem; margin-bottom:1rem; font-size:1rem; }
-  .db.full { background:#fdecea; border-color:#e08a84; }
-  .nav { display:flex; gap:.75rem; margin-top:1.5rem; }
-  button { font-size:1rem; font-family:inherit; padding:.7rem 1.4rem; border:none;
-    border-radius:6px; background:#0d6e4f; color:#fff; cursor:pointer; }
-  button.sec { background:#e8e8e8; color:#1a1a1a; }
-  .error { color:#b3261e; margin-top:.5rem; }
-  table { border-collapse:collapse; margin:.75rem 0; width:100%; }
-  td, th { border:1px solid #ddd; padding:.35rem .6rem; font-size:.95rem; text-align:right; }
-  textarea { width:100%; font-size:1rem; font-family:inherit; padding:.55rem .7rem;
-    border:1px solid #c9c9c9; border-radius:6px; min-height:70px; }
-  .tag { display:inline-block; background:#eef6f2; color:#0d6e4f; border-radius:4px;
-    padding:0 .4rem; font-size:.85rem; }
+    width:23px; height:23px; border-radius:50%; background:var(--green); border:2.5px solid var(--paper-3);
+    box-shadow:0 2px 6px rgba(43,38,34,.28); pointer-events:auto; cursor:grab; }
+  .dual input[type=range]::-moz-range-thumb { width:23px; height:23px; border-radius:50%;
+    background:var(--green); border:2.5px solid var(--paper-3);
+    box-shadow:0 2px 6px rgba(43,38,34,.28); pointer-events:auto; cursor:grab; }
+  .single input[type=range] { padding:0; accent-color:var(--green); box-shadow:none; border:none;
+    background:none; }
+
+  .imp { margin-top:.4rem; }
+  .imp select { border-color:var(--green-line); background:var(--green-soft); }
+
+  .db { position:sticky; top:0; z-index:5; background:var(--brass-soft);
+    border:1px solid var(--brass-line); border-radius:var(--r-md); padding:.55rem .85rem;
+    margin-bottom:1rem; font-size:1rem; color:var(--brass-deep); font-weight:600;
+    box-shadow:var(--sh-1); }
+  .db.full { background:var(--rose-soft); border-color:#E0B5AE; color:var(--rose); }
+
+  /* الأزرار */
+  .nav { display:flex; gap:.7rem; margin-top:1.1rem; }
+  button { font-size:1.02rem; font-family:inherit; font-weight:600; padding:.75rem 1.5rem;
+    border:none; border-radius:var(--r-pill); color:#F7F2E9; cursor:pointer;
+    background:linear-gradient(160deg,var(--green),var(--green-deep));
+    box-shadow:0 2px 5px rgba(18,59,45,.22), inset 0 1px 0 #ffffff1f;
+    transition:transform .13s var(--ease), box-shadow .2s var(--ease), filter .2s var(--ease); }
+  button:hover { filter:brightness(1.08); box-shadow:0 4px 12px rgba(18,59,45,.26); }
+  button:active { transform:translateY(1px) scale(.99); box-shadow:0 1px 3px rgba(18,59,45,.2); }
+  button:focus-visible { outline:2px solid var(--brass); outline-offset:2px; }
+  button.sec { background:var(--paper-2); color:var(--ink); border:1px solid #E0D6C7;
+    box-shadow:var(--sh-1); }
+  button.sec:hover { background:#F0E8DA; filter:none; }
+
+  .error { color:var(--rose); margin-top:.5rem; font-weight:600; }
+  table { border-collapse:collapse; margin:.8rem 0; width:100%;
+    background:var(--paper-3); border-radius:var(--r-md); overflow:hidden; box-shadow:var(--sh-1); }
+  td, th { border-bottom:1px solid #EFE7DA; padding:.45rem .7rem; font-size:.95rem; text-align:right; }
+  th { background:var(--paper-2); color:var(--green-deep); font-weight:700; }
+  .tag { display:inline-block; background:var(--brass-soft); color:var(--brass-deep);
+    border:1px solid var(--brass-line); border-radius:var(--r-pill);
+    padding:.1rem .6rem; font-size:.8rem; font-weight:600; }
+
+  /* ---- «المرآة» ---- */
+  .headline { border-radius:var(--r-md); padding:1.15rem 1.2rem; margin:1rem 0; color:#F7F2E9;
+    background:linear-gradient(135deg,var(--green-deep),var(--green) 65%,#2A6E54);
+    box-shadow:var(--sh-2); position:relative; overflow:hidden; }
+  .headline::after { content:"۞"; position:absolute; inset-inline-start:-.4rem; bottom:-1.4rem;
+    font-size:5.4rem; opacity:.1; line-height:1; }
+  .headline .k { font-size:1rem; opacity:.86; letter-spacing:.3px; }
+  .headline .v { font-size:1.6rem; font-weight:700; margin-top:.25rem; line-height:1.55;
+    font-family:var(--font-display); position:relative; }
+
+  .dbar { margin:.65rem 0; }
+  .dbar .top { display:flex; justify-content:space-between; font-size:1rem; margin-bottom:.3rem; }
+  .dbar .track { height:13px; background:#EFE7DA; border-radius:var(--r-pill); overflow:hidden;
+    box-shadow:var(--sh-in); }
+  .dbar .fill { height:100%; background:var(--green); border-radius:var(--r-pill);
+    transition:width .7s var(--ease); }
+  .dbar.d2 .fill { background:#357C61; } .dbar.d3 .fill { background:#5C9C82; }
+  .dbar.d4 .fill { background:#8ABAA5; } .dbar.d5 .fill { background:#B4D3C6; }
+  .dbar.d6 .fill { background:#D6E6DD; }
+
+  .chips { display:flex; flex-wrap:wrap; gap:.45rem; margin:.6rem 0; }
+  .chip { background:var(--brass-soft); border:1px solid var(--brass-line); color:var(--brass-deep);
+    border-radius:var(--r-pill); padding:.35rem .9rem; font-size:.95rem; box-shadow:var(--sh-1); }
+
+  .refl { background:var(--paper-3); border:1px solid #EAE0D1;
+    border-inline-start:3px solid var(--brass); border-radius:var(--r-md);
+    padding:.8rem 1rem; margin:.65rem 0; font-size:1rem; line-height:1.85; box-shadow:var(--sh-1); }
+  .refl .t { font-weight:700; color:var(--green-deep); display:block; margin-bottom:.2rem;
+    font-family:var(--font-display); font-size:1.08rem; }
+
+  .band { display:inline-block; border-radius:var(--r-pill); padding:.28rem .9rem; font-weight:700; }
+  .band.b1 { background:var(--green-soft); color:var(--green-deep); }
+  .band.b2 { background:var(--green-soft); color:var(--green-deep); }
+  .band.b3 { background:var(--brass-soft); color:var(--brass-deep); }
+  .band.b4 { background:var(--rose-soft); color:var(--rose); }
+
+  /* ---- بطاقة التعريف — تُحفظ لا تُملأ ---- */
+  .card { border:1px solid var(--brass-line); border-radius:var(--r-md); overflow:hidden;
+    margin:1rem 0; background:var(--paper-3); box-shadow:var(--sh-2); }
+  .card .chead { padding:1.05rem 1rem .95rem; text-align:center; color:#F7F2E9;
+    background:linear-gradient(140deg,var(--green-deep),var(--green) 72%);
+    position:relative; }
+  /* شريط نحاسي رفيع يفصل الترويسة — تفصيلة الحرفي */
+  .card .chead::after { content:""; position:absolute; inset-inline:0; bottom:0; height:2px;
+    background:linear-gradient(90deg,transparent,var(--brass) 30%,#D9A961 50%,var(--brass) 70%,transparent); }
+  .card .chead .nm { font-size:1.5rem; font-weight:700; font-family:var(--font-display);
+    letter-spacing:.3px; }
+  .card .chead .sb { font-size:1rem; opacity:.9; margin-top:.25rem; }
+  .card .csec { padding:.85rem 1.05rem; }
+  .card .csec + .csec { border-top:1px solid #EFE6D8; }
+  .card .csec h4 { color:var(--green); font-size:1.15rem; margin-bottom:.55rem;
+    font-family:var(--font-display); display:flex; align-items:center; gap:.5rem; }
+  .card .csec h4::after { content:""; flex:1; height:1px;
+    background:linear-gradient(to right,var(--brass-line),transparent); }
+  .card .row { display:flex; gap:.6rem; padding:.34rem 0; font-size:1rem;
+    border-bottom:1px solid #F4ECDF; }
+  .card .row:last-child { border-bottom:none; }
+  .card .row .k { color:var(--ink-soft); min-width:8.5rem; }
+  .card .row .v { font-weight:600; color:var(--ink); }
+  .card .row.db .v::after { content:" ★"; color:var(--brass); font-weight:400; }
+  .card .cfoot { background:var(--paper-2); padding:.7rem 1rem; font-size:.85rem;
+    color:var(--ink-soft); text-align:center; border-top:1px solid #EFE6D8; }
+
+  .toggles { display:flex; flex-wrap:wrap; gap:.4rem; margin:.55rem 0 1rem; }
+  .toggles label { display:inline-flex; align-items:center; gap:.4rem; font-weight:400; margin:0;
+    border:1px solid #DFD5C6; border-radius:var(--r-pill); padding:.34rem .75rem; cursor:pointer;
+    font-size:.9rem; background:var(--paper-3); transition:all .18s var(--ease); }
+  .toggles label:has(input:checked) { background:var(--green-soft); border-color:var(--green);
+    color:var(--green-deep); }
+  .toggles label.sens { border-color:var(--brass-line); background:var(--brass-soft); }
+  .toggles label.sens:has(input:checked) { background:#F0E0C6; border-color:var(--brass); }
+  .toggles input { width:auto; accent-color:var(--green); }
+
+  /* ---- شاشة الأولويات ---- */
+  .pick { display:flex; flex-wrap:wrap; gap:.55rem; margin:.85rem 0 1rem; }
+  .pick button { background:var(--paper-3); color:var(--ink); border:1px solid #DFD5C6;
+    border-radius:var(--r-md); padding:.6rem 1rem; font-size:1rem; text-align:right;
+    line-height:1.5; font-weight:600; box-shadow:var(--sh-1); }
+  .pick button:hover { filter:none; border-color:var(--green); box-shadow:var(--sh-2); }
+  .pick button .v { display:block; font-size:.85rem; color:var(--ink-soft); font-weight:400;
+    margin-top:.1rem; }
+  .pick button.on { border-color:var(--green); color:#F7F2E9;
+    background:linear-gradient(150deg,var(--green),var(--green-deep));
+    box-shadow:0 3px 10px rgba(18,59,45,.24); }
+  .pick button.on .v { color:#D8E7DF; }
+  .pick button:disabled { opacity:.4; }
+  .counter { position:sticky; top:0; z-index:5; background:var(--brass-soft);
+    border:1px solid var(--brass-line); color:var(--brass-deep); border-radius:var(--r-md);
+    padding:.55rem .9rem; margin-bottom:.8rem; font-size:1rem; font-weight:700;
+    box-shadow:var(--sh-1); }
+  .counter.full { background:var(--rose-soft); border-color:#E0B5AE; color:var(--rose); }
+
+  @media print {
+    body { background:#fff; background-image:none; }
+    .noprint { display:none !important; }
+    /* الطباعة تُخرج البطاقة وحدها، لا شيء غيرها */
+    #app > div > *:not(.cardzone) { display:none !important; }
+    .wrap { max-width:100%; padding:0; }
+    .card { border-color:var(--brass); box-shadow:none; page-break-inside:avoid; }
+  }
 </style>
 </head>
 <body>
@@ -117,159 +341,202 @@ const isWorking = a => a.workStatus === "نعم" || a.workStatusF === "نعم";
 const SECTIONS = [
  {id:"basic", title:"البيانات الأساسية", fields:[
   {id:"gender", t:"select", l:"الجنس", o:["ذكر","أنثى"]},
-  {id:"dob", t:"date", l:"تاريخ الميلاد", h:"التسجيل لمن أتم الثامنة عشرة فقط"},
-  {id:"nat", t:"select", l:"الجنسية", o:NATS},
-  {id:"height", t:"slider", l:"الطول بالسنتيمتر", min:100, max:220, unit:"سم", h:"المدى يبدأ من مئة سنتيمتر مراعاةً لأصحاب القامة القصيرة"},
-  {id:"weight", t:"slider", l:"الوزن بالكيلوجرام", min:30, max:200, unit:"كجم", bmi:true},
-  {id:"skin", t:"select", l:"لون البشرة", o:["أبيض","قمحي","حنطي","أسمر فاتح","أسمر"]},
-  {id:"health", t:"select", l:"الحالة الصحية (قيد التجربة)", o:["سليم تماماً","حالة بسيطة لا تؤثر على الحياة اليومية","مرض مزمن متحكم فيه بالعلاج","مرض مزمن يحتاج رعاية","إعاقة جسدية"], h:"الحالات البسيطة مثل نظارة طبية أو حساسية موسمية لا تحتاج ذكراً. التفاصيل لا تظهر لأي طرف إلا في مرحلة متقدمة وبموافقتك"},
-  {id:"healthDesc", t:"text", l:"وصف مختصر للحالة (اختياري)", h:"مثال: سكر، ضغط، ربو...", why:"لا يُطلب ذكر التفاصيل، وما تكتبه لا يظهر إلا في مرحلة متقدمة وبموافقتك.", if:a=>["مرض مزمن متحكم فيه بالعلاج","مرض مزمن يحتاج رعاية","إعاقة جسدية"].includes(a.health)},
-  {id:"languages", t:"multi", l:"لغات تجيدها بخلاف العربية (اختياري)", o:["الإنجليزية","الفرنسية","الألمانية","أخرى"], vis:"match"},
+  {id:"dob", grp:"who", t:"date", l:"تاريخ الميلاد", h:"التسجيل لمن أتم الثامنة عشرة فقط"},
+  {id:"nat", grp:"who", t:"select", l:"الجنسية", o:NATS},
+  {id:"languages", grp:"who", t:"multi", l:"لغات تجيدها بخلاف العربية (اختياري)", o:["الإنجليزية","الفرنسية","الألمانية","أخرى"]},
+  {id:"height", grp:"body", t:"slider", l:"الطول بالسنتيمتر", min:100, max:220, unit:"سم", h:"المدى يبدأ من مئة سنتيمتر مراعاةً لأصحاب القامة القصيرة"},
+  {id:"weight", grp:"body", t:"slider", l:"الوزن بالكيلوجرام", min:30, max:200, unit:"كجم", bmi:true},
+  {id:"skin", grp:"body", t:"select", l:"لون البشرة", o:["أبيض","قمحي","حنطي","أسمر فاتح","أسمر"]},
+  {id:"health", grp:"health", t:"select", l:"الحالة الصحية (قيد التجربة)", o:["سليم تماماً","حالة بسيطة لا تؤثر على الحياة اليومية","مرض مزمن متحكم فيه بالعلاج","مرض مزمن يحتاج رعاية","إعاقة جسدية"], h:"الحالات البسيطة كنظارة طبية أو حساسية موسمية لا تحتاج ذكراً."},
+  {id:"healthDesc", grp:"health", t:"text", l:"وصف مختصر للحالة (اختياري)", h:"مثال: سكر، ضغط، ربو...", why:"لا يُطلب منك ذكر التفاصيل، واذكر ما تطمئن إليه فقط.", if:a=>["حالة بسيطة لا تؤثر على الحياة اليومية","مرض مزمن متحكم فيه بالعلاج","مرض مزمن يحتاج رعاية","إعاقة جسدية"].includes(a.health)},
  ]},
  {id:"residence", title:"محل الإقامة", fields:[
-  {id:"resGov", t:"select", l:"محافظة الإقامة", o:GOVS, h:"لا يظهر للطرف الآخر إلا اسم المحافظة فقط"},
-  {id:"resCity", t:"select", l:"المدينة أو المنطقة", o:a=>[...(GOVS_DATA[a.resGov]??[]), OTHER], h:"لا تُعرض قبل مرحلة الكشف الموسّع", if:a=>!!a.resGov},
-  {id:"resCityOther", t:"text", l:"اكتب المدينة أو المنطقة", if:a=>a.resCity===OTHER},
+  {id:"resGov", grp:"where", t:"select", l:"محافظة الإقامة", o:GOVS},
+  {id:"resCity", grp:"where", t:"select", l:"المدينة أو المنطقة", o:a=>[...(GOVS_DATA[a.resGov]??[]), OTHER], if:a=>!!a.resGov},
+  {id:"resCityOther", grp:"where", t:"text", l:"اكتب المدينة أو المنطقة", if:a=>a.resCity===OTHER},
  ]},
  {id:"looks", title:"المظهر والملبس", fields:[
-  {id:"beard", t:"select", l:"اللحية", g:"M", o:["ملتحي (لحية سنة)","لحية مهذبة / خفيفة","بدون لحية"]},
-  {id:"dressM", t:"select", l:"طبيعة اللبس", g:"M", o:["جلباب / ثوب شرعي","كلاسيك رسمي","كاجوال","مختلط حسب المناسبة"]},
-  {id:"jewelry", t:"select", l:"هل تلبس مجوهرات؟ (قيد التجربة)", g:"M", o:["لا ألبس شيئاً","فضة أو دبلة فقط","ألبس ذهباً"]},
-  {id:"tattoo", t:"select", l:"هل لديك وشم؟ (قيد التجربة)", g:"M", o:["لا يوجد","يوجد (قديم)","يوجد"]},
-  {id:"hijab", t:"select", l:"نوع غطاء الرأس", g:"F", o:["منتقبة","خمار / حجاب شرعي كامل","طرحة ساترة للشعر بالكامل","طرحة لا تغطي كل الشعر","غير محجبة"]},
-  {id:"dressF", t:"select", l:"طبيعة الملابس", g:"F", o:["عباية / إسدال (ساتر لا يشف ولا يصف)","واسعة ساترة بدون عباية","محتشمة لكن قد تصف الجسم","ملابس عادية"]},
+  {id:"dressM", grp:"lookM", t:"select", l:"طبيعة اللبس", g:"M", o:["جلباب / ثوب شرعي","كلاسيك رسمي","كاجوال","مختلط حسب المناسبة"]},
+  {id:"beard", grp:"lookM", t:"select", l:"اللحية", g:"M", o:["ملتحي (لحية سنة)","لحية مهذبة / خفيفة","بدون لحية"]},
+  {id:"jewelry", grp:"lookM", t:"select", l:"المجوهرات (قيد التجربة)", g:"M", o:["لا ألبس شيئاً","فضة أو دبلة فقط","ألبس ذهباً"]},
+  {id:"tattoo", grp:"lookM", t:"select", l:"الوشم (قيد التجربة)", g:"M", o:["لا يوجد","يوجد (قديم)","يوجد"]},
+  {id:"dressF", grp:"lookF", t:"select", l:"طبيعة الملابس", g:"F", o:["عباية / إسدال (ساتر لا يشف ولا يصف)","واسعة ساترة بدون عباية","محتشمة لكن قد تصف الجسم","ملابس عادية"]},
+  {id:"hijab", grp:"lookF", t:"select", l:"نوع غطاء الرأس", g:"F", o:["منتقبة","خمار / حجاب شرعي كامل","طرحة ساترة للشعر بالكامل","طرحة لا تغطي كل الشعر","غير محجبة"]},
  ]},
  {id:"deen", title:"الدين والالتزام", fields:[
-  {id:"prayer", t:"select", l:"الالتزام بالصلوات الخمس", o:["محافظ عليها في أوقاتها","أصلي معظمها","متقطع","لا أصلي حالياً"]},
-  {id:"fajr", t:"select", l:"صلاة الفجر", o:["في وقتها حاضراً بالمسجد","محافظ عليها في وقتها","أصليها في وقتها غالباً","أصليها بعد الشروق"]},
-  {id:"mosque", t:"select", l:"صلاة الجماعة في المسجد", g:"M", o:["كل الصلوات في المسجد","أغلب الصلوات بالمسجد","الجمعة والفجر غالباً","الجمعة فقط","أحياناً","نادراً"]},
-  {id:"ramadan", t:"select", l:"صيام رمضان", o:["كاملاً","معظمه","متقطع","لا أصوم"]},
-  {id:"nawafilFast", t:"select", l:"صيام النوافل", o:["ألتزم بها","أحياناً","لا"]},
-  {id:"pillarsIslam", t:"select", l:"أركان الإسلام", o:["أعرفها وألتزم بها جميعاً","أعرفها ولا ألتزم بالكل","معرفة عامة","لا أعلم ما هي بالتحديد"]},
-  {id:"pillarsFaith", t:"select", l:"أركان الإيمان", o:["أعرفها وأومن بها تفصيلاً","أعرفها إجمالاً","معرفة محدودة","لا أعلم ما هي بالتحديد"]},
-  {id:"quran", t:"select", l:"حفظ القرآن", o:["حافظ كاملاً","أجزاء كبيرة (أكثر من 10)","عدة أجزاء (3–10)","جزء أو بعض السور","قصار السور فقط","لا أحفظ شيئاً"]},
-  {id:"sharia", t:"select", l:"دراسة العلوم الشرعية", o:["متخصص / طالب علم","أتابع دروساً بانتظام","أطلع أحياناً","ثقافة عامة فقط","لا يوجد"]},
+  {id:"prayer", grp:"salah", t:"select", l:"الالتزام بالصلوات الخمس", o:["محافظ عليها في أوقاتها","أصلي معظمها","متقطع","لا أصلي حالياً"]},
+  {id:"fajr", grp:"salah", t:"select", l:"صلاة الفجر", o:["في وقتها حاضراً بالمسجد","محافظ عليها في وقتها","أصليها في وقتها غالباً","أصليها بعد الشروق"]},
+  {id:"mosque", grp:"salah", t:"select", l:"صلاة الجماعة في المسجد", g:"M", o:["كل الصلوات في المسجد","أغلب الصلوات بالمسجد","الجمعة والفجر غالباً","الجمعة فقط","أحياناً","نادراً"]},
+  {id:"ramadan", grp:"siyam", t:"select", l:"صيام رمضان", o:["كاملاً","معظمه","متقطع","لا أصوم"]},
+  {id:"nawafilFast", grp:"siyam", t:"select", l:"صيام النوافل", o:["ألتزم بها","أحياناً","لا"]},
+  {id:"zakat", grp:"siyam", t:"select", l:"أداء الزكاة بأنواعها (قيد التجربة)", o:["أخرجها كاملة في وقتها","أخرجها غالباً","أخرج بعضها أو أتأخر","لا يجب عليّ إخراجها حالياً","لا أخرجها"], h:"الزكاة بأنواعها: زكاة المال والذهب وعروض التجارة والزروع وزكاة الفطر."},
+  {id:"pillarsIslam", grp:"ilm", t:"select", l:"معرفتك بأركان الإسلام", o:["أعرفها تفصيلاً","أعرفها إجمالاً","معرفة عامة","لا أعرفها بالتحديد"]},
+  {id:"pillarsFaith", grp:"ilm", t:"select", l:"معرفتك بأركان الإيمان", o:["أعرفها تفصيلاً","أعرفها إجمالاً","معرفة عامة","لا أعرفها بالتحديد"]},
+  {id:"quran", grp:"ilm", t:"select", l:"حفظ القرآن", o:["حافظ كاملاً","أجزاء كبيرة (أكثر من ١٠)","عدة أجزاء (٣ إلى ١٠)","جزء أو بعض السور","قصار السور فقط","لا أحفظ شيئاً"]},
+  {id:"sharia", grp:"ilm", t:"select", l:"دراسة العلوم الشرعية", o:["متخصص / طالب علم","أتابع دروساً بانتظام","أطلع أحياناً","ثقافة عامة فقط","لا يوجد"]},
  ]},
  {id:"social", title:"الحالة الاجتماعية", fields:[
-  {id:"marital", t:"select", l:"الحالة الحالية", g:"M", o:["أعزب (لم يسبق الزواج)","مطلق","أرمل","متزوج ويبحث عن التعدد","متزوج وسبق له الطلاق","متزوج وسبق له الترمل"]},
-  {id:"maritalF", t:"select", l:"الحالة الحالية", g:"F", o:["بكر (لم يسبق الزواج)","مطلقة","أرملة"]},
-  {id:"wives", t:"select", l:"عدد الزوجات حالياً", g:"M", o:["واحدة","اثنتان","ثلاث"], if:a=>(a.marital||"").startsWith("متزوج")},
-  {id:"prevMar", t:"select", l:"عدد مرات الزواج السابقة", o:["مرة","مرتان","ثلاث أو أكثر"], if:a=>{const m=a.gender==="أنثى"?a.maritalF:a.marital; return !!m && !m.includes("لم يسبق");}},
-  {id:"kids", t:"select", l:"هل يوجد أولاد؟", o:["نعم","لا"], if:a=>{const m=a.gender==="أنثى"?a.maritalF:a.marital; return !!m && !m.includes("لم يسبق");}},
-  {id:"kidsCount", t:"select", l:"عددهم", o:["1","2","3","4","5","6","7+"], if:a=>a.kids==="نعم"},
-  {id:"kidsAges", t:"kidages", l:"أعمارهم", if:a=>a.kids==="نعم" && !!a.kidsCount},
-  {id:"custody", t:"select", l:"مع من يعيشون؟ (قيد التجربة)", o:a=>{
+  {id:"marital", grp:"soc1", t:"select", l:"الحالة الحالية", g:"M", o:["أعزب (لم يسبق الزواج)","مطلق","أرمل","متزوج ويبحث عن التعدد","متزوج وسبق له الطلاق","متزوج وسبق له الترمل"]},
+  {id:"maritalF", grp:"soc1", t:"select", l:"الحالة الحالية", g:"F", o:["بكر (لم يسبق الزواج)","مطلقة","أرملة"]},
+  {id:"wives", grp:"soc1", t:"select", l:"عدد الزوجات حالياً", g:"M", o:["واحدة","اثنتان","ثلاث"], if:a=>(a.marital||"").startsWith("متزوج")},
+  {id:"prevMar", grp:"soc1", t:"select", l:"عدد مرات الزواج السابقة", o:["مرة","مرتان","ثلاث أو أكثر"], if:a=>{const m=a.gender==="أنثى"?a.maritalF:a.marital; return !!m && !m.includes("لم يسبق");}},
+  {id:"kids", grp:"soc1", t:"select", l:"هل يوجد أولاد؟", o:["نعم","لا"], if:a=>{const m=a.gender==="أنثى"?a.maritalF:a.marital; return !!m && !m.includes("لم يسبق");}},
+  {id:"kidsCount", grp:"soc2", t:"select", l:"عددهم", o:["1","2","3","4","5","6","7+"], if:a=>a.kids==="نعم"},
+  {id:"custody", grp:"soc2", t:"select", l:"مع من يعيشون؟ (قيد التجربة)", o:a=>{
      const base=["معي","مع الطرف الآخر","حضانة مشتركة","جميعاً بالغون ومستقلون بأنفسهم"];
      return (a.marital||"").startsWith("متزوج") ? ["جميعاً معي في بيت الزوجية",...base] : base;
    }, if:a=>a.kids==="نعم"},
+  {id:"kidsAges", grp:"soc3", t:"kidages", l:"أعمارهم", if:a=>a.kids==="نعم" && !!a.kidsCount},
  ]},
  {id:"edu", title:"التعليم", fields:[
   {id:"education", t:"select", l:"المستوى التعليمي", o:["بدون مؤهل","إعدادي","ثانوي / دبلوم","مؤهل جامعي (بكالوريوس/ليسانس)","ماجستير","دكتوراه"]},
-  {id:"major", t:"select", l:"التخصص", o:MAJORS, if:a=>HIGHER_EDU.includes(a.education)},
-  {id:"majorOther", t:"text", l:"اذكر التخصص", if:a=>a.major===OTHER},
-  {id:"college", t:"select", l:"الجامعة أو المعهد", o:UNIS, h:"لا يُعرض قبل مرحلة الكشف الموسّع", if:a=>HIGHER_EDU.includes(a.education)},
-  {id:"collegeOther", t:"text", l:"اذكر الجامعة أو المعهد", if:a=>a.college===OTHER},
+  {id:"major", grp:"study", t:"select", l:"التخصص", o:MAJORS, if:a=>HIGHER_EDU.includes(a.education)},
+  {id:"majorOther", grp:"study", t:"text", l:"اذكر التخصص", if:a=>a.major===OTHER},
+  {id:"college", grp:"study", t:"select", l:"الجامعة أو المعهد", o:UNIS, if:a=>HIGHER_EDU.includes(a.education)},
+  {id:"collegeOther", grp:"study", t:"text", l:"اذكر الجامعة أو المعهد", if:a=>a.college===OTHER},
  ]},
  {id:"habits", title:"العادات", fields:[
-  {id:"smoking", t:"select", l:"التدخين (سجائر)", o:["لا أبداً","أقلعت","أحياناً","مدخن"]},
-  {id:"shisha", t:"select", l:"الشيشة / الفيب", o:["لا","نادراً","نعم"]},
-  {id:"intox", t:"select", l:"الكحول / المخدرات", o:["لا أبداً","سابقاً وتوقفت","نعم"]},
+  {id:"smoking", grp:"habits", t:"select", l:"السجائر", o:["لا أبداً","أقلعت","أحياناً","مدخن"]},
+  {id:"shisha", grp:"habits", t:"select", l:"الشيشة", o:["لا","نادراً","نعم"]},
+  {id:"vape", grp:"habits", t:"select", l:"الفيب (السجائر الإلكترونية) (قيد التجربة)", o:["لا","نادراً","نعم"]},
+  {id:"intox", grp:"habits", t:"select", l:"الكحول / المخدرات", o:["لا أبداً","سابقاً وتوقفت","نعم"]},
  ]},
  {id:"work", title:"العمل والوضع المادي", fields:[
-  {id:"workStatus", t:"select", l:"هل تعمل حالياً؟", g:"M", o:["نعم","لا، أبحث عن عمل","لا (طالب)","لا (متقاعد)"]},
-  {id:"workStatusF", t:"select", l:"هل تعملين حالياً؟", g:"F", o:["نعم","لا، أبحث عن عمل","لا (ربة منزل)","لا (طالبة)"]},
-  {id:"jobField", t:"select", l:"مجال العمل (قيد التجربة)", o:JOB_FIELDS, if:isWorking},
-  {id:"jobFieldOther", t:"text", l:"اذكر المجال", if:a=>a.jobField===OTHER},
-  {id:"workMode", t:"select", l:"طبيعة مقر العمل", o:["من المنزل (عن بُعد)","من مقر العمل","مختلط (بيت + مقر)","ميداني / متنقل"], if:isWorking},
-  {id:"workSched", t:"select", l:"مواعيد العمل", o:["صباحي ثابت","مسائي","شيفتات متغيرة","ساعات مرنة"], if:isWorking},
-  {id:"workMix", t:"select", l:"هل بيئة العمل مختلطة؟", o:["لا، منفصلة","نعم، مختلطة","اختلاط محدود"], if:isWorking},
-  {id:"workAfter", t:"select", l:"هل ترغبين في العمل بعد الزواج؟", g:"F", o:["نعم بالتأكيد","نعم لكن بشروط","حسب الظروف والاتفاق مع الزوج","أفضل عدم العمل"]},
-  {id:"fin", t:"select", l:"الوضع المادي الشخصي", o:["ممتاز","جيد","متوسط","محدود"]},
-  {id:"famFin", t:"select", l:"الوضع المادي للأسرة", o:["ممتاز","جيد","متوسط","محدود"]},
+  {id:"workStatus", grp:"work1", t:"select", l:"هل تعمل حالياً؟", g:"M", o:["نعم","لا، أبحث عن عمل","لا (طالب)","لا (متقاعد)"]},
+  {id:"workStatusF", grp:"work1", t:"select", l:"هل تعملين حالياً؟", g:"F", o:["نعم","لا، أبحث عن عمل","لا (ربة منزل)","لا (طالبة)"]},
+  {id:"jobField", grp:"work1", t:"select", l:"مجال العمل (قيد التجربة)", o:JOB_FIELDS, if:isWorking},
+  {id:"jobFieldOther", grp:"work1", t:"text", l:"اذكر المجال", if:a=>a.jobField===OTHER},
+  {id:"workMode", grp:"jobdetail", t:"select", l:"طبيعة مقر العمل", o:["من المنزل (عن بُعد)","من مقر العمل","مختلط (بيت + مقر)","ميداني / متنقل"], if:isWorking},
+  {id:"workSched", grp:"jobdetail", t:"select", l:"مواعيد العمل", o:["صباحي ثابت","مسائي","شيفتات متغيرة","ساعات مرنة"], if:isWorking},
+  {id:"workMix", grp:"jobdetail", t:"select", l:"هل بيئة العمل مختلطة؟", o:["لا، منفصلة","نعم، مختلطة","اختلاط محدود"], if:isWorking},
+  {id:"workAfter", grp:"money", t:"select", l:"هل ترغبين في العمل بعد الزواج؟", g:"F", o:["نعم بالتأكيد","نعم لكن بشروط","حسب الظروف والاتفاق مع الزوج","أفضل عدم العمل"]},
+  {id:"fin", grp:"money", t:"select", l:"الوضع المادي الشخصي", o:["ممتاز","جيد","متوسط","محدود"]},
+  {id:"famFin", grp:"money", t:"select", l:"الوضع المادي للأسرة", o:["ممتاز","جيد","متوسط","محدود"]},
  ]},
  {id:"wedding", title:"الترتيبات المادية والزفاف", intro:"اختر النموذج الأقرب لك — التفاصيل النهائية دائماً بالاتفاق بين الطرفين.", fields:[
-  {id:"finModel", t:"select", l:"نموذج الترتيب المادي (قيد التجربة)", g:"M", o:[
+  {id:"finModel", grp:"fin1", t:"select", l:"نموذج الترتيب المادي (قيد التجربة)", g:"M", o:[
     "الأصل الشرعي: أتحمل المهر والتجهيز كاملاً — بلا قايمة",
     "أتحمل التجهيز، وما تشارك به الزوجة يُدفع ثمنه أو تُكتب قايمة بقيمته فقط",
     "العرف المصري: مهر رمزي ومؤخر ومشاركة في التجهيز مع قايمة كاملة"]},
-  {id:"finModelF", t:"select", l:"النموذج المادي المقبول لديك (قيد التجربة)", g:"F", o:[
+  {id:"finModelF", grp:"fin1", t:"select", l:"النموذج المادي المقبول لديك (قيد التجربة)", g:"F", o:[
     "الأصل الشرعي: الزوج يتحمل كل شيء — بلا قايمة",
     "أشارك ببعض التجهيز ويُدفع ثمنه أو يُكتب بقيمته فقط",
     "العرف المصري: مشاركة في التجهيز مع قايمة كاملة",
     "حسب الاتفاق"]},
-  {id:"shabkaInMahr", t:"select", l:"هل تُحسب الشبكة ضمن المهر؟", g:"M", o:["نعم، ضمن المهر","لا، هدية مستقلة"], if:a=>(a.finModel||"").startsWith("الأصل الشرعي")},
-  {id:"contribHandling", t:"select", l:"ما تجهزه الزوجة", g:"M", o:["أدفع ثمنه","تُكتب قايمة بقيمته فقط"], if:a=>(a.finModel||"").startsWith("أتحمل التجهيز")},
-  {id:"muakharStance", t:"select", l:"موقفك من المؤخر", g:"M", o:["أقبله بالاتفاق","قابل للتفاوض","أرفضه تماماً"], if:a=>!!a.finModel && !(a.finModel||"").startsWith("العرف")},
-  {id:"muakharStanceF", t:"select", l:"المؤخر بالنسبة لك", g:"F", o:["أشترطه","بالاتفاق","لا أشترطه"]},
-  {id:"furnishLevel", t:"select", l:"مستوى التجهيز المستهدف (بالاتفاق)", o:["أساسي","متوسط","كامل بالكماليات"]},
-  {id:"shabka", t:"select", l:"الشبكة", o:["شبكة كاملة","هدية رمزية (دبلة ومحبس)","دبلة فقط","بدون شبكة (تيسيراً)"]},
-  {id:"engParty", t:"select", l:"إقامة حفل خطوبة", o:["نعم، حفل خطوبة منفصل","قراءة فاتحة فقط","لا، كتب كتاب مباشرة"]},
-  {id:"engStyle", t:"select", l:"مواصفات حفل الخطوبة", o:["إسلامي (لا اختلاط، لا معازف)","عائلي بسيط في المنزل","قاعة مع التزام بالضوابط","قاعة تقليدية"], if:a=>a.engParty==="نعم، حفل خطوبة منفصل"},
-  {id:"wedParty", t:"select", l:"إقامة حفل زفاف", o:["نعم","لا (وليمة وإشهار فقط)"]},
-  {id:"wedStyle", t:"select", l:"مواصفات حفل الزفاف", o:["إسلامي (منفصل، دف فقط)","قاعة عائلية محافظة","فرح تقليدي"], if:a=>a.wedParty==="نعم"},
-  {id:"walima", t:"select", l:"وليمة الزواج", o:["نعم ضروري (سُنة)","حسب الاستطاعة","غير ضروري"]},
-  {id:"engDur", t:"select", l:"مدة الخطوبة المستهدفة", o:["أقل من 6 شهور","من 6 شهور إلى سنة","أكثر من سنة"]},
+  {id:"shabkaInMahr", grp:"fin1", t:"select", l:"هل تُحسب الشبكة ضمن المهر؟", g:"M", o:["نعم، ضمن المهر","لا، هدية مستقلة"], if:a=>(a.finModel||"").startsWith("الأصل الشرعي")},
+  {id:"contribHandling", grp:"fin1", t:"select", l:"ما تجهزه الزوجة", g:"M", o:["أدفع ثمنه","تُكتب قايمة بقيمته فقط"], if:a=>(a.finModel||"").startsWith("أتحمل التجهيز")},
+  {id:"muakharStance", grp:"fin1", t:"select", l:"موقفك من المؤخر", g:"M", o:["أقبله بالاتفاق","قابل للتفاوض","أرفضه تماماً"], if:a=>!!a.finModel && !(a.finModel||"").startsWith("العرف")},
+  {id:"muakharStanceF", grp:"fin1", t:"select", l:"المؤخر بالنسبة لك", g:"F", o:["أشترطه","بالاتفاق","لا أشترطه"]},
+  {id:"furnishLevel", grp:"fin2", t:"select", l:"مستوى التجهيز المستهدف (بالاتفاق)", o:["أساسي","متوسط","كامل بالكماليات"]},
+  {id:"shabka", grp:"fin2", t:"select", l:"الشبكة", o:["شبكة كاملة","هدية رمزية (دبلة ومحبس)","دبلة فقط","بدون شبكة (تيسيراً)"]},
+  {id:"engParty", grp:"celeb1", t:"select", l:"إقامة حفل خطوبة", o:["نعم، حفل خطوبة منفصل","قراءة فاتحة فقط","لا، كتب كتاب مباشرة"]},
+  {id:"engStyle", grp:"celeb1", t:"select", l:"مواصفات حفل الخطوبة", o:["إسلامي (لا اختلاط، لا معازف)","عائلي بسيط في المنزل","قاعة مع التزام بالضوابط","قاعة تقليدية"], if:a=>a.engParty==="نعم، حفل خطوبة منفصل"},
+  {id:"wedParty", grp:"celeb1", t:"select", l:"إقامة حفل زفاف", o:["نعم","لا (وليمة وإشهار فقط)"]},
+  {id:"wedStyle", grp:"celeb1", t:"select", l:"مواصفات حفل الزفاف", o:["إسلامي (منفصل، دف فقط)","قاعة عائلية محافظة","فرح تقليدي"], if:a=>a.wedParty==="نعم"},
+  {id:"walima", grp:"celeb2", t:"select", l:"وليمة الزواج", o:["نعم ضروري (سُنة)","حسب الاستطاعة","غير ضروري"]},
+  {id:"engDur", grp:"celeb2", t:"select", l:"مدة الخطوبة المستهدفة", o:["أقل من ٦ شهور","من ٦ شهور إلى سنة","أكثر من سنة"]},
  ]},
- {id:"afterMarriage", title:"الحياة بعد الزواج (قيد التجربة)", vis:"private", fields:[
-  {id:"living", t:"select", l:"أين ستسكنان بعد الزواج؟", o:["شقة مستقلة","مع أسرة الزوج","مع أسرة الزوجة","لم نحدد بعد"], why:"من أكثر النقاط تأثيراً على التوافق العملي."},
-  {id:"housingReadiness", t:"select", l:"جاهزية السكن", o:["جاهز (تمليك)","جاهز (إيجار)","قيد التجهيز","سنجهزه بعد الاتفاق"], pnts:true},
-  {id:"residenceAfter", t:"select", l:"محافظة السكن بعد الزواج", o:[...GOVS,"مرن حسب الاتفاق"]},
-  {id:"relocation", t:"select", l:"الاستعداد للسفر أو الهجرة", o:["أرغب في الهجرة أو العمل بالخارج","منفتح حسب الفرصة","أفضل الاستقرار في مصر","لا أرغب في السفر إطلاقاً"], why:"قد يكون عاملاً حاسماً للطرفين في الاتجاهين."},
-  {id:"readiness", t:"select", l:"جاهزيتك للزواج", o:["جاهز الآن","خلال ٦ أشهر","خلال سنة","أكثر من سنة","حسب الظروف"]},
-  {id:"finReadiness", t:"select", l:"الجاهزية المادية للزواج", o:["جاهز مادياً الآن","شبه جاهز","أحتاج وقتاً"], pnts:true},
-  {id:"dependents", t:"select", l:"هل تعول أفراداً من أسرتك؟", o:["لا","نعم، الوالدين","نعم، إخوة أو أخوات","نعم، آخرون"], why:"التزام مالي قائم من حق الطرف الآخر معرفته.", pnts:true},
+ {id:"afterMarriage", title:"الحياة بعد الزواج (قيد التجربة)", fields:[
+  {id:"living", grp:"home", t:"select", l:"أين ستسكنان بعد الزواج؟", o:["شقة مستقلة","مع أسرة الزوج","مع أسرة الزوجة","لم نحدد بعد"], why:"من أكثر النقاط تأثيراً على التوافق العملي."},
+  {id:"housingReadiness", grp:"home", t:"select", l:"جاهزية السكن", o:["جاهز (تمليك)","جاهز (إيجار)","قيد التجهيز","سنجهزه بعد الاتفاق"], pnts:true},
+  {id:"residenceAfter", grp:"home", t:"select", l:"محافظة السكن بعد الزواج", o:[...GOVS,"مرن حسب الاتفاق"]},
+  {id:"relocation", grp:"home", t:"select", l:"الاستعداد للسفر أو الهجرة", o:["أرغب في الهجرة أو العمل بالخارج","منفتح حسب الفرصة","أفضل الاستقرار في مصر","لا أرغب في السفر إطلاقاً"], why:"قد يكون عاملاً حاسماً للطرفين في الاتجاهين."},
+  {id:"readiness", grp:"ready", t:"select", l:"جاهزيتك للزواج", o:["جاهز الآن","خلال ٦ أشهر","خلال سنة","أكثر من سنة","حسب الظروف"]},
+  {id:"finReadiness", grp:"ready", t:"select", l:"الجاهزية المادية للزواج", o:["جاهز مادياً الآن","شبه جاهز","أحتاج وقتاً"], pnts:true},
+  {id:"dependents", grp:"ready", t:"select", l:"هل تعول أفراداً من أسرتك؟", o:["لا","نعم، الوالدين","نعم، إخوة أو أخوات","نعم، آخرون"], why:"التزام مالي قائم، ومعرفته من أول الطريق تريح الطرفين.", pnts:true},
+  {id:"wantKids", grp:"kidsplan", t:"select", l:"هل ترغب في الإنجاب؟ (قيد التجربة)", o:["نعم","لا","لم أحسم أمري بعد"],
+    why:"من أهم ما ينبغي أن يتفق عليه الطرفان قبل الزواج، وكثيراً ما يُغفل حتى يقع الخلاف."},
+  {id:"kidsTiming", grp:"kidsplan", t:"select", l:"ومتى تحب أن يكون ذلك؟",
+    o:["فور الزواج","بعد سنة تقريباً","بعد استقرار مادي","حسب ما ييسّر الله"], if:a=>a.wantKids==="نعم"},
+  {id:"kidsWanted", grp:"kidsplan", t:"select", l:"وكم عدد الأولاد الذي تتمناه؟",
+    o:["واحد أو اثنان","ثلاثة أو أربعة","خمسة فأكثر","لم أحدد بعد"], if:a=>a.wantKids==="نعم"},
+  {id:"inlawsVisits", grp:"inlaws", t:"select", l:"زيارات الأهل بعد الزواج (قيد التجربة)",
+    o:["أسبوعياً أو أكثر","كل أسبوعين تقريباً","شهرياً","في المناسبات فقط","حسب الاتفاق"]},
+  {id:"inlawsRole", grp:"inlaws", t:"select", l:"ومشاركة الأهل في قرارات البيت",
+    o:["القرار للزوجين وحدهما","نستشيرهم ولا نلتزم برأيهم","نأخذ برأيهم في الأمور الكبيرة"],
+    why:"من أكثر أسباب الخلاف بعد الزواج في بيئتنا، ونادراً ما يُسأل عنه قبله."},
  ]},
  {id:"skills", title:"مهارات الحياة (قيد التجربة)", fields:[
-  {id:"cooking", t:"select", l:"إجادة الطبخ", g:"F", o:["أجيده جيداً","الأساسيات","لا أجيده"]},
-  {id:"cleaning", t:"select", l:"التنظيف وتدبير المنزل", g:"F", o:["أجيده تماماً","جيد","ضعيف"]},
-  {id:"childcare", t:"select", l:"الاستعداد لتربية الأطفال", o:["مستعد وقادر","مستعد مع التعلم","غير مستعد حالياً"]},
-  {id:"homeHelp", t:"select", l:"المشاركة في خدمة المنزل", g:"M", o:["أشارك بالكامل","في بعض الأمور","لا أشارك"]},
-  {id:"driving", t:"select", l:"رخصة قيادة", o:["نعم","لا"]},
-  {id:"car", t:"select", l:"سيارة خاصة", o:["نعم","لا"]},
-  {id:"socialStyle", t:"select", l:"التواصل الاجتماعي", o:["اجتماعي جداً","متوسط","هادئ / انطوائي"]},
-  {id:"club", t:"select", l:"اشتراك نادي فعال", o:["نعم","لا"]},
+  {id:"cooking", grp:"skl", t:"select", l:"إجادة الطبخ", g:"F", o:["أجيده جيداً","الأساسيات","لا أجيده"]},
+  {id:"cleaning", grp:"skl", t:"select", l:"التنظيف وتدبير المنزل", g:"F", o:["أجيده تماماً","جيد","ضعيف"]},
+  {id:"childcare", grp:"skl", t:"select", l:"الاستعداد لتربية الأطفال", o:["مستعد وقادر","مستعد مع التعلم","غير مستعد حالياً"]},
+  {id:"homeHelp", grp:"skl", t:"select", l:"المشاركة في خدمة المنزل", g:"M", o:["أشارك بالكامل","في بعض الأمور","لا أشارك"]},
+  {id:"car", grp:"skl", t:"select", l:"سيارة خاصة", o:["نعم","لا"]},
+  {id:"club", grp:"skl2", t:"select", l:"اشتراك نادي فعال", o:["نعم","لا"]},
+  {id:"conflictStyle", grp:"skl2", t:"select", l:"عند الخلاف، أقرب شيء لطبعك (قيد التجربة)",
+    o:["أناقش فوراً بهدوء","أحتاج وقتاً ثم أعود للنقاش","أصمت وأنسحب","أحتدّ ثم أهدأ سريعاً"],
+    why:"أسلوب الخلاف من أكثر ما يؤثر في استقرار البيت — وأكثر ما يُكتشف بعد فوات الأوان."},
+  {id:"socialStyle", grp:"skl2", t:"select", l:"التواصل الاجتماعي", o:["اجتماعي جداً","متوسط","هادئ / انطوائي"]},
+  {id:"humour", grp:"skl2", t:"select", l:"طبعك في المزاح (قيد التجربة)",
+    o:["أُكثر من المزاح","أمزح في وقته","جاد غالباً مع بعض المرح","جاد بطبعي"],
+    why:"لا نسأل «هل أنت خفيف الظل؟» لأن الكل سيقول نعم — نسأل عن طبعك، والجدّية طبع محترم كالمرح."},
+  {id:"reading", grp:"mind", t:"select", l:"آخر كتاب أتممته (قيد التجربة)",
+    o:["خلال هذا الشهر","خلال هذه السنة","منذ سنوات","لا أقرأ الكتب عادةً"],
+    why:"نسأل عن آخر مرة فعلتها لا عن حبك لها — فذلك أصدق وأسهل عليك."},
+  {id:"curiosity", grp:"mind", t:"select", l:"حين تواجه أمراً جديداً لا تعرفه (قيد التجربة)",
+    o:["أبحث وأقرأ حتى أفهمه","أسأل من له خبرة","أجرّب بنفسي وأتعلم بالخطأ","أتركه لأهله"],
+    why:"لا نسأل عن الذكاء — لا أحد يصف نفسه بغير الذكاء. نسأل كيف تتصرف، وكل إجابة هنا محترمة."},
+  {id:"hobbies", grp:"hobby", t:"multi", l:"هواياتك واهتماماتك (اختر ما شئت)",
+    o:["الرياضة","القراءة","السفر","الطبخ","الأعمال اليدوية","التقنية والبرمجة","الكتابة","الرسم والفنون","رحلات برية أو صيد","ألعاب إلكترونية","متابعة الرياضة","العمل التطوعي","أخرى"]},
  ]},
  {id:"reqs", title:"مواصفات شريك حياتك", intro:"اختر ما تريده في شريك حياتك، ثم أخبرنا كم يهمك كل أمر. إذا اخترت «لا يهم» أو «غير مشترط» لأي صفة فلن نسألك عن أهميتها. ومعنى درجات الأهمية:\n• شرط حاسم: لا تقبل الزواج بدونه إطلاقاً — ومن لا يحققه يُستبعد تماماً (بحد أقصى ٨ شروط).\n• أساسي: يهمك كثيراً.  • مفضل: تحب توفّره.  • يُستحسن: لطيف لو وُجد.  • لا يهم: لا يؤثر.", fields:[
-  {id:"rAge", t:"range", l:"العمر المطلوب", min:18, max:70, lo:22, hi:35, req:1},
-  {id:"rHeight", t:"range", l:"الطول المطلوب بالسنتيمتر", min:100, max:210, lo:155, hi:185, req:1, h:"المدى يبدأ من مئة سنتيمتر مراعاةً لأصحاب القامة القصيرة"},
-  {id:"rWeight", t:"range", l:"الوزن المطلوب بالكيلوجرام", min:30, max:150, lo:50, hi:95, req:1},
-  {id:"rNat", t:"select", l:"الجنسية", o:["لا يهم","مصري(ة) فقط","عربي(ة)"], req:1},
-  {id:"rSkin", t:"select", l:"لون البشرة", o:["لا يهم","أبيض","قمحي","حنطي","أسمر فاتح","أسمر"], req:1},
-  {id:"rHealth", t:"select", l:"الحالة الصحية", o:["سليم تماماً فقط","أقبل الحالات البسيطة","أقبل مرضاً مزمناً متحكماً فيه","لا يهم"], req:1},
-  {id:"rLookM", t:"select", l:"نوع الحجاب المطلوب (قيد التجربة)", g:"M", o:["منتقبة","خمار فأكثر","حجاب شرعي كامل (يستر ولا يشف ولا يصف) فأكثر","طرحة ساترة للشعر فأكثر","لا يهم"], h:"كل خيار يقبل ما هو أكثر التزاماً منه", req:1},
-  {id:"rLookF", t:"select", l:"اللحية المطلوبة", g:"F", o:["ملتحي","لحية ولو خفيفة","لا يهم"], req:1},
-  {id:"rJewelry", t:"select", l:"لبس الذهب أو المجوهرات (قيد التجربة)", g:"F", o:["لا يلبس ذهباً","فضة أو دبلة مقبولة","لا يهم"], req:1},
-  {id:"rTattoo", t:"select", l:"الوشم (قيد التجربة)", g:"F", o:["بدون وشم","مقبول إن كان قديماً","لا يهم"], req:1},
-  {id:"rPrayer", t:"select", l:"الالتزام بالصلاة", o:["محافظ على الخمس","يصلي معظمها","غير مشترط"], req:1},
-  {id:"rFajr", t:"select", l:"صلاة الفجر", o:["في وقتها حاضراً","في وقتها غالباً","غير مشترط"], req:1},
-  {id:"rQuran", t:"select", l:"حفظ القرآن", o:["حافظ كاملاً","أجزاء كبيرة","بعض الأجزاء","قصار السور على الأقل","غير مشترط"], req:1},
-  {id:"rMarital", t:"select", l:"الحالات المقبولة", g:"M", o:["أقبل أي حالة","بكر فقط","بكر أو مطلقة","بكر أو أرملة","مطلقة فقط","أرملة فقط","مطلقة أو أرملة"], req:1},
-  {id:"rMaritalF", t:"select", l:"الحالات المقبولة", g:"F", o:["أقبل أي حالة","أعزب فقط","أعزب أو مطلق","أعزب أو أرمل","مطلق فقط","أرمل فقط","أقبل متزوجاً (تعدد)"], req:1},
-  {id:"rKids", t:"select", l:"قبول وجود أولاد", o:["مرفوض تماماً","مقبول بشروط","مقبول"], req:1,
+  {id:"rAge", grp:"rranges", t:"range", l:"العمر المطلوب", min:18, max:70, lo:22, hi:35, req:1},
+  {id:"rHeight", grp:"rranges", t:"range", l:"الطول المطلوب بالسنتيمتر", min:100, max:210, lo:155, hi:185, req:1, h:"المدى يبدأ من مئة سنتيمتر مراعاةً لأصحاب القامة القصيرة"},
+  {id:"rWeight", grp:"rranges", t:"range", l:"الوزن المطلوب بالكيلوجرام", min:30, max:150, lo:50, hi:95, req:1},
+  {id:"rNat", grp:"rbody", t:"select", l:"الجنسية", o:["لا يهم","مصري(ة) فقط","عربي(ة)"], req:1},
+  {id:"rSkin", grp:"rbody", t:"select", l:"لون البشرة", o:["لا يهم","أبيض","قمحي","حنطي","أسمر فاتح","أسمر"], req:1},
+  {id:"rHealth", grp:"rbody", t:"select", l:"الحالة الصحية", o:["سليم تماماً فقط","أقبل الحالات البسيطة","أقبل مرضاً مزمناً متحكماً فيه","لا يهم"], req:1},
+  {id:"rLookM", grp:"rlook", t:"select", l:"نوع الحجاب المطلوب (قيد التجربة)", short:"الحجاب المطلوب", g:"M", o:["منتقبة","خمار فأكثر","حجاب شرعي كامل (يستر ولا يشف ولا يصف) فأكثر","طرحة ساترة للشعر فأكثر","لا يهم"], h:"كل خيار يقبل ما هو أكثر التزاماً منه", req:1},
+  {id:"rLookF", grp:"rlook", t:"select", l:"اللحية المطلوبة", g:"F", o:["ملتحي","لحية ولو خفيفة","لا يهم"], req:1},
+  {id:"rJewelry", grp:"rlook", t:"select", l:"لبس الذهب أو المجوهرات (قيد التجربة)", short:"الذهب والمجوهرات", g:"F", o:["لا يلبس ذهباً","فضة أو دبلة مقبولة","لا يهم"], req:1},
+  {id:"rTattoo", grp:"rlook", t:"select", l:"الوشم (قيد التجربة)", g:"F", o:["بدون وشم","مقبول إن كان قديماً","لا يهم"], req:1},
+  {id:"rPrayer", grp:"rdeen", t:"select", l:"الالتزام بالصلاة", o:["محافظ على الخمس","يصلي معظمها","غير مشترط"], req:1},
+  {id:"rFajr", grp:"rdeen", t:"select", l:"صلاة الفجر", o:["في وقتها حاضراً","في وقتها غالباً","غير مشترط"], req:1},
+  {id:"rQuran", grp:"rdeen", t:"select", l:"حفظ القرآن", o:["حافظ كاملاً","أجزاء كبيرة","بعض الأجزاء","قصار السور على الأقل","غير مشترط"], req:1},
+  {id:"rMarital", grp:"rsoc", t:"select", l:"الحالات المقبولة", g:"M", o:["أقبل أي حالة","بكر فقط","بكر أو مطلقة","بكر أو أرملة","مطلقة فقط","أرملة فقط","مطلقة أو أرملة"], req:1},
+  {id:"rMaritalF", grp:"rsoc", t:"select", l:"الحالات المقبولة", g:"F", o:["أقبل أي حالة","أعزب فقط","أعزب أو مطلق","أعزب أو أرمل","مطلق فقط","أرمل فقط","أقبل متزوجاً (تعدد)"], req:1},
+  {id:"rKids", grp:"rsoc", t:"select", l:"قبول وجود أولاد", o:["مرفوض تماماً","مقبول بشروط","مقبول"], req:1,
     if:a=> a.gender==="أنثى" ? a.rMaritalF!=="أعزب فقط" : a.rMarital!=="بكر فقط"},
-  {id:"rEdu", t:"select", l:"الحد الأدنى للتعليم", o:["دكتوراه","ماجستير فأعلى","مؤهل جامعي فأعلى","ثانوي فأعلى","غير مهم"], req:1},
-  {id:"rSmoke", t:"select", l:"التدخين والشيشة", o:["مرفوض بالكامل","مقبول السجائر فقط","مقبول"], req:1},
-  {id:"rIntox", t:"select", l:"الكحول والمخدرات", o:["مرفوض تماماً","مقبول إذا توقف"], req:1},
-  {id:"rWork", t:"select", l:"هل يشترط أن يعمل الشريك؟", o:["نعم","يفضل","غير مشترط"], req:1},
-  {id:"rFin", t:"select", l:"الوضع المادي", o:["ممتاز","جيد","متوسط فأعلى","غير مهم"], req:1},
-  {id:"rLiving", t:"select", l:"ترتيب السكن المطلوب", o:["شقة مستقلة ضرورية","أقبل السكن مع الأهل مؤقتاً","لا يهم"], req:1},
-  {id:"rReadiness", t:"select", l:"جاهزية الشريك للزواج", o:["جاهز قريباً (خلال سنة)","لا يهم"], req:1},
-  {id:"rLanguage", t:"select", l:"لغة أجنبية مطلوبة", o:["الإنجليزية","أي لغة أجنبية","لا يهم"], req:1},
-  {id:"rWifeWork", t:"select", l:"رغبة الزوجة في العمل", g:"M", o:["أفضّل أن تعمل","حسب الاتفاق","أفضّل ألا تعمل"], req:1},
-  {id:"rFinModel", t:"select", l:"النموذج المادي المقبول (قيد التجربة)", g:"F", o:["الأصل الشرعي (يتكفل بكل شيء)","قايمة بقيمة مشاركتي فقط","قايمة كاملة بالعرف","حسب الاتفاق"], req:1},
-  {id:"rWedding", t:"select", l:"شكل حفل الزفاف", o:["إسلامي (بلا اختلاط أو معازف)","قاعة مع ضوابط","عائلي بسيط","لا يشترط"], req:1},
-  {id:"rCooking", t:"select", l:"إجادة الطبخ", g:"M", o:["تجيده","الأساسيات على الأقل","غير مشترط"], req:1},
-  {id:"rCleaning", t:"select", l:"تدبير المنزل", g:"M", o:["تجيده تماماً","جيد على الأقل","غير مشترط"], req:1},
-  {id:"rChildcare", t:"select", l:"تربية الأطفال", o:["مستعد وقادر","غير مشترط"], req:1},
-  {id:"rHomeHelp", t:"select", l:"مشاركة الزوج في خدمة المنزل", g:"F", o:["يشارك بالكامل","في بعض الأمور","غير مشترط"], req:1},
-  {id:"rDriving", t:"select", l:"رخصة قيادة", o:["نعم","غير مشترط"], req:1},
-  {id:"rCar", t:"select", l:"سيارة خاصة", o:["نعم","غير مشترط"], req:1},
-  {id:"rSocial", t:"select", l:"التواصل الاجتماعي", o:["اجتماعي جداً","متوسط","هادئ","لا يهم"], req:1},
-  {id:"rClub", t:"select", l:"اشتراك نادٍ فعال", o:["يشترط","غير مشترط"], req:1},
+  {id:"rEdu", grp:"rwork", t:"select", l:"الحد الأدنى للتعليم", o:["دكتوراه","ماجستير فأعلى","مؤهل جامعي فأعلى","ثانوي فأعلى","غير مهم"], req:1},
+  {id:"rWork", grp:"rwork", t:"select", l:"هل يشترط أن يعمل الزوج؟", short:"عمل الزوج", g:"F", o:["نعم","يفضل","غير مشترط"], req:1},
+  {id:"rWifeWork", grp:"rwork", t:"select", l:"عمل الزوجة بعد الزواج", short:"عمل الزوجة", g:"M", o:["أفضّل أن تعمل","حسب الاتفاق","أفضّل ألا تعمل","أشترط ألا تعمل"], req:1},
+  {id:"rLanguage", grp:"rwork", t:"select", l:"لغة أجنبية مطلوبة", o:["الإنجليزية","أي لغة أجنبية","لا يهم"], req:1},
+  {id:"rFin", grp:"rmoney", t:"select", l:"الوضع المادي", o:["ممتاز","جيد","متوسط فأعلى","غير مهم"], req:1},
+  {id:"rFinModel", grp:"rmoney", t:"select", l:"النموذج المادي المقبول (قيد التجربة)", short:"النموذج المادي", g:"F", o:["الأصل الشرعي (يتكفل بكل شيء)","قايمة بقيمة مشاركتي فقط","قايمة كاملة بالعرف","حسب الاتفاق"], req:1},
+  {id:"rWedding", grp:"rmoney", t:"select", l:"شكل حفل الزفاف", o:["إسلامي (بلا اختلاط أو معازف)","قاعة مع ضوابط","عائلي بسيط","لا يشترط"], req:1},
+  {id:"rTobacco", grp:"rhabits", t:"multi", l:"التدخين — ما الذي تقبله في شريك حياتك؟ (قيد التجربة)", short:"التدخين المقبول",
+    o:["أرفضها جميعاً","السجائر","الشيشة","الفيب","أقبل أي نوع"],
+    excl:["أرفضها جميعاً","أقبل أي نوع"],
+    h:"«أرفضها جميعاً» و«أقبل أي نوع» يلغيان بقية الاختيارات.", req:1},
+  {id:"rIntox", grp:"rhabits", t:"select", l:"الكحول والمخدرات", o:["مرفوض تماماً","مقبول إذا توقف"], req:1},
+  {id:"rLiving", grp:"rlife", t:"select", l:"ترتيب السكن المطلوب", o:["شقة مستقلة ضرورية","أقبل السكن مع الأهل مؤقتاً","لا يهم"], req:1},
+  {id:"rReadiness", grp:"rlife", t:"select", l:"جاهزية الشريك للزواج", o:["جاهز قريباً (خلال سنة)","لا يهم"], req:1},
+  {id:"rWantKids", grp:"rlife", t:"select", l:"رغبة الشريك في الإنجاب (قيد التجربة)", short:"الرغبة في الإنجاب",
+    o:["يريد الإنجاب","لا يريد الإنجاب","غير مشترط"], req:1},
+  {id:"rInlaws", grp:"rlife", t:"select", l:"العلاقة بالأهل بعد الزواج (قيد التجربة)", short:"العلاقة بالأهل",
+    o:["استقلال قرار الزوجين","المشورة مقبولة","لا يهم"], req:1},
+  {id:"rConflict", grp:"rchar", t:"select", l:"أسلوب الخلاف المقبول (قيد التجربة)", short:"أسلوب الخلاف",
+    o:["يناقش بهدوء","يقبل التأجيل ثم النقاش","لا يهم"], req:1},
+  {id:"rSocial", grp:"rchar", t:"select", l:"التواصل الاجتماعي", o:["اجتماعي جداً","متوسط","هادئ","لا يهم"], req:1},
+  {id:"rHumour", grp:"rchar", t:"select", l:"طبع شريكك في المزاح (قيد التجربة)", short:"المزاح",
+    o:["أحب المرح","متوسط","أفضّل الجدية","لا يهم"], req:1},
+  {id:"rReading", grp:"rmind", t:"select", l:"القراءة والاطلاع (قيد التجربة)", short:"القراءة",
+    o:["مهم أن يقرأ","يُستحسن","لا يهم"], req:1},
+  {id:"rHobbies", grp:"rmind", t:"select", l:"مشاركة الهوايات (قيد التجربة)", short:"مشاركة الهوايات",
+    o:["يهمني أن يشاركني هواياتي","يُستحسن","لا يهم"], req:1},
+  {id:"rCar", grp:"rmind", t:"select", l:"سيارة خاصة", o:["نعم","غير مشترط"], req:1},
+  {id:"rClub", grp:"rmind", t:"select", l:"اشتراك نادٍ فعال", o:["يشترط","غير مشترط"], req:1},
+  {id:"rCooking", grp:"rskills", t:"select", l:"إجادة الطبخ", g:"M", o:["تجيده","الأساسيات على الأقل","غير مشترط"], req:1},
+  {id:"rCleaning", grp:"rskills", t:"select", l:"تدبير المنزل", g:"M", o:["تجيده تماماً","جيد على الأقل","غير مشترط"], req:1},
+  {id:"rHomeHelp", grp:"rskills", t:"select", l:"مشاركة الزوج في خدمة المنزل", g:"F", o:["يشارك بالكامل","في بعض الأمور","غير مشترط"], req:1},
+  {id:"rChildcare", grp:"rskills", t:"select", l:"تربية الأطفال", o:["مستعد وقادر","غير مشترط"], req:1},
  ]},
 ];
 
-const LS_KEY = "spike2a_v03";
+/* مفتاح التخزين يُرفع مع كل تغيير جوهري في الأسئلة.
+   حالة قديمة قد تحمل صفاتٍ حُذفت (rSmoke، rDriving) فتُحسب ضمن الشروط الحاسمة
+   وهي غير معروضة أصلاً — فيمتلئ الحد الأقصى بشروطٍ لا يراها صاحبها. */
+const LS_KEY = "spike2a_v16";
 let state = { answers:{}, imp:{}, section:0, timings:{}, enteredAt:Date.now(), startedAt:Date.now(), feedback:{}, started:false, finished:false, stepKey:null };
 try { const saved = JSON.parse(localStorage.getItem(LS_KEY)); if (saved && confirm("لديك إجابات محفوظة، هل تريد المتابعة من حيث توقفت؟")) state = saved; else localStorage.removeItem(LS_KEY); } catch {}
 
@@ -279,8 +546,14 @@ const optsOf = (f) => typeof f.o === "function" ? f.o(state.answers) : f.o;
 const visibleFields = (sec) => sec.fields.filter(f =>
   (!f.g || (f.g==="M"&&genderOf()==="ذكر") || (f.g==="F"&&genderOf()==="أنثى")) &&
   (!f.if || f.if(state.answers)));
-const dbCount = () => Object.values(state.imp).filter(v=>v==="شرط حاسم").length;
-const setCriteria = () => Object.values(state.imp).filter(v=>v&&v!=="لا يهم").length;
+/* تُحسب درجات الأهمية للصفات المعروضة الآن فقط — لا لصفةٍ حُذفت أو لا تخص جنس المستخدم.
+   وإلا امتلأ حد الشروط الحاسمة بشروطٍ لا يراها صاحبها ولا يستطيع رفعها. */
+const impOfVisibleReqs = () => {
+  const sec = SECTIONS.find(s => s.id === "reqs");
+  return sec ? visibleFields(sec).map(f => state.imp[f.id]) : [];
+};
+const dbCount = () => impOfVisibleReqs().filter(v => v === "شرط حاسم").length;
+const setCriteria = () => impOfVisibleReqs().filter(v => v && v !== "لا يهم").length;
 const kidsN = () => { const c = state.answers.kidsCount || ""; return Math.min(parseInt(c) || 0, 7); };
 function save(){ localStorage.setItem(LS_KEY, JSON.stringify(state)); }
 
@@ -307,15 +580,21 @@ function visNoteText(f, sec){
 // قسمٌ مكتمل: كل حقوله المرئية مُجابة (النصوص اختيارية)، ودرجات الأهمية محددة
 function isSectionComplete(sec){
   for (const f of visibleFields(sec)){
-    if (f.t === "text" || f.t === "multi") continue;
-    if (f.t === "range"){ if (f.req && !state.imp[f.id]) return false; continue; }
+    if (f.t === "text") continue;
+    if (f.t === "multi"){
+      if (f.req){
+        const v = state.answers[f.id];
+        if (!Array.isArray(v) || !v.length) return false;
+      }
+      continue;
+    }
+    if (f.t === "range"){ continue; }
     if (f.t === "kidages"){
       const n = kidsN();
       for (let i = 1; i <= n; i++) if (!state.answers[`kidAge_${i}`]) return false;
       continue;
     }
     if (!state.answers[f.id]) return false;
-    if (f.req && !state.imp[f.id] && !NO_PREF.has(state.answers[f.id])) return false;
   }
   return true;
 }
@@ -356,7 +635,7 @@ function buildLabel(h, w){
   return "ممتلئ";
 }
 
-const RERENDER_ON = new Set(["gender","health","marital","maritalF","kids","kidsCount","education","major","college","workStatus","workStatusF","jobField","finModel","engParty","wedParty","resGov","resCity"]);
+const RERENDER_ON = new Set(["gender","health","marital","maritalF","kids","kidsCount","education","major","college","workStatus","workStatusF","jobField","finModel","engParty","wedParty","resGov","resCity","wantKids"]);
 
 // عنصر استيراد قابل لإعادة الاستخدام (شاشة الترحيب وأول قسم)
 function buildImportControl(){
@@ -378,10 +657,10 @@ function buildImportControl(){
         }
         state = { answers:data.answers??{}, imp:data.imp??{}, section:0,
           timings:data.timings??{}, enteredAt:Date.now(), startedAt:Date.now(),
-          feedback:data.feedback??{}, started:true, finished:false, stepKey:null };
-        state.stepKey = askableSteps()[0].f.id;
-        save(); render();
-        alert("تم استيراد إجاباتك. يمكنك الآن مراجعتها والتعديل عليها سؤالاً بسؤال.");
+          feedback:data.feedback??{}, started:true, finished:false,
+          stepKey:data.stepKey??null, card:data.card??null };
+        save();
+        renderImportChoice(data.stepKey);
       } catch { alert("تعذر قراءة الملف"); }
     };
     reader.readAsText(file);
@@ -393,6 +672,63 @@ function buildImportControl(){
   return impWrap;
 }
 
+// هل أُجيب عن هذا السؤال؟ (المدى يُخزَّن في حقلين)
+function isAnswered(f){
+  if (f.t === "range") return state.answers[f.id+"_min"] != null && state.answers[f.id+"_max"] != null;
+  const v = state.answers[f.id];
+  return Array.isArray(v) ? v.length > 0 : (v != null && v !== "");
+}
+// من موضع توقفه فصاعداً: أول سؤال بلا إجابة — حتى لا نعيده لسؤال أجاب عنه،
+// ولا نرجعه لسؤال اختياري تخطّاه في أول الطريق
+function resumeStep(saved){
+  const steps = askableSteps();
+  const idx = saved ? steps.findIndex(s => s.f.id === saved) : -1;
+  if (idx >= 0){
+    const fwd = steps.slice(idx).find(s => !isAnswered(s.f));
+    return (fwd || steps[idx]).f.id;
+  }
+  const gap = steps.find(s => !isAnswered(s.f));
+  return (gap || steps[steps.length-1]).f.id;
+}
+
+// بعد الاستيراد: نترك الاختيار له — تقارير، أو إكمال، أو مراجعة من البداية
+function renderImportChoice(savedStep){
+  app.replaceChildren();
+  const box = el("div");
+  box.appendChild(el("h1", null, "تم استيراد إجاباتك"));
+
+  const steps = askableSteps();
+  const done = steps.filter(s => isAnswered(s.f)).length;
+  box.appendChild(el("p", "muted",
+    `استعدنا إجاباتك المحفوظة (${done} من ${steps.length} سؤالاً). أين تحب أن تبدأ؟`));
+
+  const opt = (label, help, sec, apply) => {
+    const w = el("div", "fg");
+    const b = el("button", sec ? "sec" : null, label);
+    b.addEventListener("click", () => {
+      apply(); state.enteredAt = Date.now(); save(); render(); window.scrollTo(0,0);
+    });
+    w.appendChild(b);
+    w.appendChild(el("div", "help", help));
+    box.appendChild(w);
+  };
+
+  opt("عرض التقارير (مرآتك وبطاقتك) 📊",
+      "اذهب مباشرةً إلى النتيجة: أثقل ما تبحث عنه، ووقفتك مع نفسك، وبطاقة التعريف.",
+      false, () => { state.finished = true; });
+
+  opt("المتابعة من حيث توقفت ▶",
+      "يفتح عند أول سؤال لم تجب عنه بعد.",
+      true, () => { state.finished = false; state.stepKey = resumeStep(savedStep); });
+
+  opt("المراجعة والتعديل من البداية ✎",
+      "يمرّ بك على كل الأسئلة من أولها لتراجع إجاباتك وتعدّل ما تشاء.",
+      true, () => { state.finished = false; state.stepKey = steps[0].f.id; });
+
+  app.appendChild(box);
+  window.scrollTo(0,0);
+}
+
 // شاشة الترحيب — سلام وبسملة ودعاء، طمأنة بشأن الخصوصية، إرشاد، وتذكير ودّي بالمشاركة
 function renderWelcome(){
   app.replaceChildren();
@@ -400,7 +736,7 @@ function renderWelcome(){
   const bas = el("div", "basmala");
   bas.appendChild(el("div", "salam", "السَّلَامُ عَلَيْكُمْ وَرَحْمَةُ اللَّهِ وَبَرَكَاتُهُ"));
   bas.appendChild(el("div", "bism", "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ"));
-  const div1 = el("div", "divider"); div1.appendChild(el("span", null, "✿"));
+  const div1 = el("div", "divider"); div1.appendChild(el("span", null, "۞"));
   bas.appendChild(div1);
   bas.appendChild(el("div", "dua", "بَارَكَ اللَّهُ فِيكُمْ، وَوَفَّقَكُمْ لِكُلِّ خَيْرٍ"));
   app.appendChild(bas);
@@ -408,28 +744,32 @@ function renderWelcome(){
   const h1 = el("h1", null, "أهلاً بك ");
   h1.appendChild(el("span", "tag", "نسخة تجريبية"));
   app.appendChild(h1);
-  app.appendChild(el("p", "muted", "جزاك الله خيراً على وقتك — تساعدنا بتجربة استبيان زواج للتأكد أنه سهل وواضح. تجربتك ورأيك أهم عندنا من إجاباتك نفسها."));
+  app.appendChild(el("p", "muted",
+    "هذا الاستبيان لك أنت وحدك — وُضع ليعينك على طريقك إلى الزواج: "+
+    "أن تعرف نفسك أكثر، وتعرف ما الذي تريده حقاً في شريك حياتك."));
 
   const safe = el("div", "note");
   safe.textContent =
-    "🔒 خصوصيتك مضمونة تماماً:\n" +
-    "• كل إجاباتك تُحفظ على جهازك أنت فقط.\n" +
+    "🔒 لا نحتفظ بأي معلومة عنك بأي شكل من الأشكال:\n" +
+    "• كل إجاباتك تبقى على جهازك أنت فقط.\n" +
     "• لا تُرسل أي معلومة تلقائياً لأي خادم أو أي جهة.\n" +
-    "• لا يصلنا منك أي شيء إطلاقاً إلا إذا اخترت بنفسك تنزيل ملف إجاباتك وإرساله.";
+    "• لا يصل إلينا منك شيء إطلاقاً إلا إذا اخترت أنت بنفسك أن ترسله.";
   app.appendChild(safe);
 
   const steps = el("div", "note");
   steps.textContent =
     "ماذا تفعل:\n" +
-    "١) املأ الاستبيان (إجابات حقيقية أو تجريبية، المهم تجربتك).\n" +
-    "٢) في النهاية اضغط «تنزيل الإجابات».\n" +
-    "٣) أرسل الملف لمن أرسل لك هذا الرابط.\n" +
-    "يستغرق حوالي ١٠ إلى ١٥ دقيقة، وتُحفظ إجاباتك تلقائياً لتكمل لاحقاً.";
+    "١) أجب على الأسئلة على راحتك — إجاباتك لك.\n" +
+    "٢) في النهاية ترى «مرآتك»: أثقل ما تبحث عنه فعلاً، ووقفة قصيرة مع نفسك.\n" +
+    "٣) وتحصل على «بطاقة تعريف» تعطيها — إن شئت — لمن يساعدك في البحث.\n" +
+    "يستغرق حوالي ١٥ دقيقة، وتُحفظ إجاباتك على جهازك تلقائياً لتكمل لاحقاً.";
   app.appendChild(steps);
 
-  // تذكير ودّي — ليس شرطاً ولا مربع موافقة
+  // دعوة ودّية للاقتراحات — ليست شرطاً ولا مربع موافقة
   const kind = el("div", "note");
-  kind.textContent = "💚 نرجو منك بلطف: شاركنا رأيك وملاحظاتك عن التجربة في نهاية الاستبيان — فهي أغلى ما نخرج به منك.";
+  kind.textContent =
+    "💚 وإن كان لديك أي اقتراح أو ملاحظة، فيسعدنا جداً أن تشاركنا به — "+
+    "نحسّن به جودة هذا العمل ونفعه لمن بعدك.";
   app.appendChild(kind);
 
   const nav = el("div", "nav");
@@ -452,28 +792,37 @@ function renderOneField(sec, f, dbBox, advance){
   const fg = el("div", "fg");
   fg.dataset.fid = f.id;
   const lblRow = el("label", null, f.l);
-  const info = el("span", "info", "ⓘ");
-  info.title = "لماذا نسأل / من يرى هذه المعلومة";
-  lblRow.appendChild(info);
-  fg.appendChild(lblRow);
-  const note = el("div", "note", visNoteText(f, sec));
-  note.style.display = "none";
-  info.addEventListener("click", () => { note.style.display = note.style.display === "none" ? "block" : "none"; });
-  fg.appendChild(note);
+  // ملاحظة «من يرى هذه المعلومة» أُزيلت: لا وجود لطرف آخر ولا لمراحل كشف في هذه النسخة،
+  // فكانت تَعِد بما لا يقع. يبقى «لماذا نسأل» حيث يفيد. (قرار محمد 2026-07-28)
+  if (f.why){
+    const info = el("span", "info", "ⓘ");
+    info.title = "لماذا نسأل هذا السؤال";
+    lblRow.appendChild(info);
+    fg.appendChild(lblRow);
+    const note = el("div", "note", "لماذا نسأل: " + f.why);
+    note.style.display = "none";
+    info.addEventListener("click", () => { note.style.display = note.style.display === "none" ? "block" : "none"; });
+    fg.appendChild(note);
+  } else {
+    fg.appendChild(lblRow);
+  }
   if (f.h) fg.appendChild(el("div", "help", f.h));
   const clearMissing = () => fg.classList.remove("missing");
+  // المتابعة التلقائية: السؤال المفرد ينتقل فور الإجابة — بلا استثناء.
+  // أما المجموعة فتُعاد رسمها ليظهر ما يتوقف على الإجابة، وينتقل بضغطة «التالي».
   const onAnswer = (e) => {
-    state.answers[f.id] = e.target.value; save(); clearMissing();
-    if (RERENDER_ON.has(f.id)) render();
-    else if (advance) advance();
+    const v = e.target.value;
+    state.answers[f.id] = v; clearMissing();
+    if (f.req){
+      if (NO_PREF.has(v)) state.imp[f.id] = "لا يهم";
+      else if (state.imp[f.id] === "لا يهم") delete state.imp[f.id];
+    }
+    save();
+    if (advance) advance(); else render();
   };
   if (f.t === "select"){
     const opts = f.pnts ? [...optsOf(f), PNTS] : optsOf(f);
-    const handler = f.req
-      ? (e) => { state.answers[f.id] = e.target.value; save(); clearMissing();
-                 if (advance && NO_PREF.has(e.target.value)) advance(); else render(); }
-      : onAnswer;
-    fg.appendChild(makeSelect(opts, state.answers[f.id], handler));
+    fg.appendChild(makeSelect(opts, state.answers[f.id], onAnswer));
   } else if (f.t === "multi"){
     const wrap = el("div", "multi");
     const chosen = Array.isArray(state.answers[f.id]) ? state.answers[f.id] : [];
@@ -482,8 +831,14 @@ function renderOneField(sec, f, dbBox, advance){
       const cb = el("input"); cb.type = "checkbox"; cb.checked = chosen.includes(o);
       cb.addEventListener("change", () => {
         const cur = Array.isArray(state.answers[f.id]) ? state.answers[f.id] : [];
-        state.answers[f.id] = cb.checked ? [...cur, o] : cur.filter(x=>x!==o);
+        let next = cb.checked ? [...cur, o] : cur.filter(x=>x!==o);
+        // خيارات يُلغي اختيارها ما عداها (مثل «أرفضها جميعاً»)
+        if (f.excl && cb.checked){
+          next = f.excl.includes(o) ? [o] : next.filter(x => !f.excl.includes(x));
+        }
+        state.answers[f.id] = next;
         save(); clearMissing();
+        if (f.excl) render();
       });
       lab.appendChild(cb); lab.appendChild(el("span", null, o));
       wrap.appendChild(lab);
@@ -538,28 +893,11 @@ function renderOneField(sec, f, dbBox, advance){
     dual.appendChild(mk(loKey)); dual.appendChild(mk(hiKey)); paint();
     fg.appendChild(dual); fg.appendChild(readout);
   }
+  // درجة الأهمية لم تعد تُسأل هنا — صارت شاشتَي ترتيب الأولويات في النهاية،
+  // فذلك أسرع، ويجبر على المفاضلة بدل أن يوسم كل شيء بأنه «أساسي» (قرار محمد 2026-07-28)
   if (f.req){
     const val = state.answers[f.id];
-    if (val && NO_PREF.has(val)){
-      state.imp[f.id] = "لا يهم";
-      fg.appendChild(el("div", "help", "اخترت «بلا تفضيل» لهذه الصفة، فلا حاجة لتحديد أهميتها."));
-    } else {
-      const impWrap = el("div", "imp");
-      const impSel = el("select");
-      const first = el("option", null, "ما مدى أهمية هذه الصفة لك؟"); first.value = ""; impSel.appendChild(first);
-      for (const o of IMP){ const opt = el("option", null, IMP_LABEL[o] || o); opt.value = o; if (o === state.imp[f.id]) opt.selected = true; impSel.appendChild(opt); }
-      impSel.addEventListener("change", (e) => {
-        if (e.target.value === "شرط حاسم" && state.imp[f.id] !== "شرط حاسم" && dbCount() >= DB_CAP){
-          e.target.value = state.imp[f.id] ?? "";
-          alert(`وصلت للحد الأقصى: ${DB_CAP} شروط حاسمة فقط. خفّف شرطاً آخر أولاً.`);
-          return;
-        }
-        state.imp[f.id] = e.target.value; save(); fg.classList.remove("missing");
-        if (dbBox){ dbBox.textContent = `شروطك الحاسمة: ${dbCount()} من ${DB_CAP}`; dbBox.className = "db" + (dbCount()>=DB_CAP ? " full" : ""); }
-        if (advance) advance();
-      });
-      impWrap.appendChild(impSel); fg.appendChild(impWrap);
-    }
+    if (val && NO_PREF.has(val)) state.imp[f.id] = "لا يهم";
   }
   return fg;
 }
@@ -580,26 +918,94 @@ const BRIDGES = {
   reqs: "الآن… حدّثنا عن شريك حياتك الذي تتمنّاه، وكم تهمّك كل صفة.",
 };
 
+// نص الفقاعة حين تُعرض عدة أسئلة قصيرة معاً على بطاقة واحدة
+const GRP_Q = {
+  who:      "نبدأ بالتعريف بك.",
+  body:     "لمحة عن مظهرك العام.",
+  health:   "وحالتك الصحية — بلا تفاصيل تُحرجك.",
+  where:    "أين تقيم؟",
+  soc1:     "نتكلّم قليلاً عن وضعك الاجتماعي.",
+  soc2:     "وعن أولادك.",
+  soc3:     "أعمارهم.",
+  work1:    "عملك.",
+  money:    "والوضع المادي.",
+  study:    "دراستك الجامعية.",
+  lookM:    "لبسك ومظهرك.",
+  lookF:    "لبسك ومظهرك.",
+  salah:    "الصلاة.",
+  siyam:    "الصيام والزكاة.",
+  ilm:      "معرفتك الشرعية — سؤال عن العلم لا عن الالتزام.",
+  habits:   "أسئلة سريعة عن عاداتك اليومية.",
+  jobdetail:"بعض تفاصيل عملك.",
+  engage:   "حفل الخطوبة.",
+  wed:      "حفل الزفاف.",
+  celebr:   "الوليمة ومدة الخطوبة.",
+  assets:   "أمور عملية صغيرة.",
+  kidsplan: "بارك الله لك — وتفاصيل الإنجاب.",
+  inlaws:   "العلاقة بأهل الزوجين بعد الزواج.",
+  fin1:     "نصل إلى جزء مهم: رؤيتك للترتيبات المادية.",
+  fin2:     "التجهيز والشبكة.",
+  celeb1:   "الخطوبة والزفاف.",
+  celeb2:   "الوليمة ومدة الخطوبة.",
+  home:     "وبعد الزواج بإذن الله — أين ستستقران؟",
+  ready:    "وجاهزيتك للزواج.",
+  skl:      "وشيء عن مهاراتك في الحياة اليومية.",
+  skl2:     "وعن طبعك.",
+  mind:     "واهتماماتك.",
+  hobby:    "وهواياتك — اختر ما شئت.",
+  rmind:    "الاهتمامات وأمور عملية.",
+  rranges:  "النطاقات التي تقبلها.",
+  rbody:    "المظهر العام والصحة.",
+  rlook:    "اللبس والمظهر.",
+  rdeen:    "الجانب الديني.",
+  rsoc:     "الحالة الاجتماعية.",
+  rwork:    "التعليم والعمل.",
+  rmoney:   "الوضع المادي والزفاف.",
+  rhabits:  "العادات.",
+  rlife:    "الحياة بعد الزواج.",
+  rchar:    "الطباع وأمور عملية.",
+  rskills:  "مهارات البيت.",
+};
+
+// خطوة واحدة = سؤال واحد، أو مجموعة أسئلة قصيرة تحمل الوسم نفسه (grp)
 function askableSteps(){
   const out = [];
-  for (const sec of SECTIONS) for (const f of visibleFields(sec)) out.push({sec, f});
+  for (const sec of SECTIONS){
+    const vis = visibleFields(sec);
+    let i = 0;
+    while (i < vis.length){
+      const g = vis[i].grp;
+      if (g){
+        const fields = [];
+        while (i < vis.length && vis[i].grp === g){ fields.push(vis[i]); i++; }
+        out.push({ sec, fields, f: fields[0], grp: g });
+      } else {
+        out.push({ sec, fields:[vis[i]], f: vis[i], grp: null });
+        i++;
+      }
+    }
+  }
   return out;
 }
 
 function fieldError(f){
-  if (f.t === "text" || f.t === "multi") return null;
+  if (f.t === "text") return null;
+  if (f.t === "multi"){
+    if (!f.req) return null;                       // الاختيارات المتعددة الاختيارية (كاللغات) تبقى بلا إلزام
+    const v = state.answers[f.id];
+    if (!Array.isArray(v) || !v.length) return "اختر إجابة واحدة على الأقل";
+    return null;
+  }
   if (f.t === "range"){
     const lo=+state.answers[f.id+"_min"], hi=+state.answers[f.id+"_max"];
     if (lo && hi && lo>hi) return "النطاق غير صحيح";
     if (f.id==="rAge" && lo && lo<18) return "الحد الأدنى للعمر ثمانية عشر عاماً";
-    if (f.req && !state.imp[f.id] && !NO_PREF.has(state.answers[f.id])) return "اختر درجة الأهمية";
     return null;
   }
   if (f.t === "slider") return state.answers[f.id] ? null : "حرّك المؤشر لاختيار القيمة";
   if (f.t === "kidages"){ const n=kidsN(); for(let i=1;i<=n;i++) if(!state.answers[`kidAge_${i}`]) return "أكمل أعمار الأولاد"; return null; }
   if (!state.answers[f.id]) return "من فضلك أجب هذا السؤال";
   if (f.id==="dob"){ const age=(Date.now()-new Date(state.answers.dob).getTime())/31557600000; if(!(age>=18)) return "التسجيل لمن أتم الثامنة عشرة فقط"; }
-  if (f.req && !state.imp[f.id] && !NO_PREF.has(state.answers[f.id])) return "اختر درجة الأهمية";
   return null;
 }
 
@@ -611,27 +1017,32 @@ function renderChat(){
   if (!steps.length) return;
   let idx = steps.findIndex(s => s.f.id === state.stepKey);
   if (idx < 0) idx = 0;
-  const sec = steps[idx].sec, f = steps[idx].f;
+  const step = steps[idx], sec = step.sec, fields = step.fields;
+  const single = fields.length === 1;
 
-  const h1 = el("h1", null, "دعنا نتعرّف عليك ");
-  h1.appendChild(el("span","tag","نسخة تجريبية"));
-  app.appendChild(h1);
-  app.appendChild(el("p","muted", `سؤال ${idx+1} من ${steps.length}`));
+  // بلا ترويسة مكررة ولا عدّ للأسئلة — كلاهما يُثقل الشاشة بلا فائدة (قرار محمد 2026-07-28)
+  const tagRow = el("div", "taprow");
+  tagRow.appendChild(el("span", "tag", "نسخة تجريبية"));
+  app.appendChild(tagRow);
   const bar=el("div","bar"); const fill=el("div"); fill.style.width=Math.round(idx/steps.length*100)+"%"; bar.appendChild(fill); app.appendChild(bar);
 
   const wrap = el("div","qwrap");
   const firstOfSec = idx===0 || steps[idx-1].sec.id !== sec.id;
-  if (firstOfSec && BRIDGES[sec.id]) wrap.appendChild(el("div","bubble bridge", BRIDGES[sec.id]));
-  wrap.appendChild(el("div","bubble", f.q || f.l));
+  const hasBridge = firstOfSec && BRIDGES[sec.id];
+  if (hasBridge) wrap.appendChild(el("div","bubble bridge", BRIDGES[sec.id]));
+  // سؤال مفرد: يظهر نصه دائماً. مجموعة: لا نكرّر صوت القسم — الجسر يكفي في أول بطاقة.
+  if (single) wrap.appendChild(el("div","bubble", fields[0].q || fields[0].l));
+  else if (!hasBridge) wrap.appendChild(el("div","bubble", GRP_Q[step.grp] || sec.title));
 
-  let dbBox=null;
-  if (sec.id==="reqs"){ dbBox=el("div","db"+(dbCount()>=DB_CAP?" full":""), `شروطك الحاسمة: ${dbCount()} من ${DB_CAP}`); wrap.appendChild(dbBox); }
+  const err = el("p","error");
+  // سؤال واحد ← تقدّم تلقائي؛ مجموعة ← ينتقل بضغطة «التالي» بعد أن يجيب عنها كلها
+  for (const f of fields){
+    const fg = renderOneField(sec, f, null, single ? () => goNext() : null);
+    if (single){ const lbl = fg.querySelector("label"); if (lbl) lbl.style.display = "none"; }
+    wrap.appendChild(fg);
+  }
 
-  const fg = renderOneField(sec, f, dbBox, () => goNext());
-  const lbl = fg.querySelector("label"); if (lbl) lbl.style.display = "none"; // السؤال ظاهر في الفقاعة
-  wrap.appendChild(fg);
-
-  const err = el("p","error"); wrap.appendChild(err);
+  wrap.appendChild(err);
   const nav = el("div","nav");
   if (idx>0){
     const back = el("button","sec","السابق");
@@ -640,7 +1051,17 @@ function renderChat(){
   }
   const last = idx===steps.length-1;
   const next = el("button", null, last ? "تم" : "التالي");
-  next.addEventListener("click", ()=>{ const e = fieldError(f); if (e){ err.textContent = e; fg.classList.add("missing"); return; } goNext(); });
+  next.addEventListener("click", ()=>{
+    for (const f of fields){
+      const e = fieldError(f);
+      if (e){
+        err.textContent = e;
+        const box = wrap.querySelector(`.fg[data-fid="${f.id}"]`); if (box) box.classList.add("missing");
+        return;
+      }
+    }
+    goNext();
+  });
   nav.appendChild(next);
   wrap.appendChild(nav);
   app.appendChild(wrap);
@@ -650,25 +1071,139 @@ function goNext(){
   const steps = askableSteps();
   let idx = steps.findIndex(s=>s.f.id===state.stepKey);
   if (idx<0) idx=0;
-  const f = steps[idx].f, secId = steps[idx].sec.id;
-  const e = fieldError(f);
-  if (e){
-    render();
-    const box=document.querySelector(`.fg[data-fid="${f.id}"]`); if(box) box.classList.add("missing");
-    const ep=document.querySelector(".error"); if(ep) ep.textContent=e;
-    return;
+  const step = steps[idx], secId = step.sec.id;
+  for (const f of step.fields){
+    const e = fieldError(f);
+    if (e){
+      render();
+      const box=document.querySelector(`.fg[data-fid="${f.id}"]`); if(box) box.classList.add("missing");
+      const ep=document.querySelector(".error"); if(ep) ep.textContent=e;
+      return;
+    }
   }
   accTime(secId);
   if (idx >= steps.length-1){
-    if (setCriteria() < MIN_CRITERIA){ alert(`اختر ${MIN_CRITERIA} صفات على الأقل تهمّك (غير «لا يهم») حتى يعمل التوافق.`); return; }
-    state.finished = true; save(); render(); window.scrollTo(0,0); return;
+    // انتهت الأسئلة — تبدأ لحظة ترتيب الأولويات، لا النهاية
+    if (chosenCriteria().length < MIN_CRITERIA){
+      alert(`اختر ${ar(MIN_CRITERIA)} صفات على الأقل تهمّك (غير «لا يهم») حتى يعمل التوافق.`); return;
+    }
+    state.phase = "db"; save(); render(); window.scrollTo(0,0); return;
   }
   state.stepKey = steps[idx+1].f.id; save(); render(); window.scrollTo(0,0);
+}
+
+/* ============================================================
+   لحظة ترتيب الأولويات — شاشتان باللمس بدل أن يُسأل عن أهمية
+   كل صفة على حدة. المفاضلة نفسها هي ما يُعرِّف المرء بنفسه.
+   ============================================================ */
+
+// الصفات التي اختار لها قيمة فعلية (بلا اعتبار للأهمية بعد)
+// أرقام عربية-هندية داخل الجُمل العربية
+const ar = (n) => String(n).replace(/[0-9]/g, d => "٠١٢٣٤٥٦٧٨٩"[+d]);
+
+function chosenCriteria(){
+  const sec = REQ_SEC(); if (!sec) return [];
+  return visibleFields(sec).map(f => {
+    const v = clean(reqValue(f.id));
+    return { id:f.id, label:clean(f.short || f.l), value:v };
+  }).filter(c => c.value && !NO_PREF.has(c.value));
+}
+
+function renderPrioritize(){
+  app.replaceChildren();
+  const all = chosenCriteria();
+  const isDb  = (id) => state.imp[id] === "شرط حاسم";
+  const isEss = (id) => state.imp[id] === "أساسي";
+  const phase = state.phase;                       // "db" ثم "essential"
+  const pool  = phase === "db" ? all : all.filter(c => !isDb(c.id));
+
+  const h1 = el("h1", null, phase === "db" ? "وقفة قصيرة قبل النهاية " : "وما الذي يهمك كثيراً؟ ");
+  h1.appendChild(el("span","tag","نسخة تجريبية"));
+  app.appendChild(h1);
+
+  const bar = el("div","bar"); const fill = el("div");
+  fill.style.width = (phase === "db" ? 92 : 97) + "%"; bar.appendChild(fill); app.appendChild(bar);
+
+  const wrap = el("div","qwrap");
+  wrap.appendChild(el("div","bubble bridge",
+    phase === "db"
+      ? `اخترت ${ar(all.length)} صفة تريدها في شريك حياتك، وكلها طيبة. لكن الحياة لا تعطي كل شيء.`
+      : "بقي أمر واحد."));
+  wrap.appendChild(el("div","bubble",
+    phase === "db"
+      ? `فما الذي لا تقبل الزواج بدونه إطلاقاً؟ اختر ما تحب حتى ${ar(DB_CAP)} كحد أقصى.`
+      : "وما الذي يهمك كثيراً وإن لم يكن شرطاً لا تتنازل عنه؟ اختر ما شئت، وما تتركه يبقى مرغوباً لا أكثر."));
+
+  let counter = null;
+  if (phase === "db"){
+    counter = el("div", "counter");
+    wrap.appendChild(counter);
+  }
+  const paint = () => {
+    if (!counter) return;
+    const n = dbCount();
+    counter.textContent = `اخترت ${ar(n)} من ${ar(DB_CAP)}`;
+    counter.className = "counter" + (n >= DB_CAP ? " full" : "");
+  };
+
+  const pick = el("div","pick");
+  for (const c of pool){
+    const b = el("button");
+    b.appendChild(document.createTextNode(c.label));
+    b.appendChild(el("span","v", c.value));
+    const on = () => phase === "db" ? isDb(c.id) : isEss(c.id);
+    const sync = () => { b.className = on() ? "on" : ""; };
+    sync();
+    b.addEventListener("click", () => {
+      if (phase === "db"){
+        if (isDb(c.id)) state.imp[c.id] = "مفضل";
+        else {
+          if (dbCount() >= DB_CAP){
+            alert(`وصلت للحد الأقصى: ${ar(DB_CAP)} شروط حاسمة. خفّف شرطاً آخر أولاً.`); return;
+          }
+          state.imp[c.id] = "شرط حاسم";
+        }
+      } else {
+        state.imp[c.id] = isEss(c.id) ? "مفضل" : "أساسي";
+      }
+      save(); sync(); paint();
+    });
+    pick.appendChild(b);
+  }
+  paint();
+  wrap.appendChild(pick);
+
+  const nav = el("div","nav");
+  const back = el("button","sec","السابق");
+  back.addEventListener("click", () => {
+    if (phase === "essential"){ state.phase = "db"; }
+    else {
+      const steps = askableSteps();
+      state.phase = null; state.stepKey = steps[steps.length-1].f.id;
+    }
+    save(); render(); window.scrollTo(0,0);
+  });
+  nav.appendChild(back);
+
+  const next = el("button", null, phase === "db" ? "التالي" : "اعرض النتيجة");
+  next.addEventListener("click", () => {
+    if (phase === "db"){ state.phase = "essential"; save(); render(); window.scrollTo(0,0); return; }
+    // ما لم يُختر يبقى «مفضل» — رغبة صادقة بلا إلزام
+    for (const c of all) if (!state.imp[c.id]) state.imp[c.id] = "مفضل";
+    state.phase = null; state.finished = true; save(); render(); window.scrollTo(0,0);
+  });
+  nav.appendChild(next);
+  wrap.appendChild(nav);
+
+  if (phase === "db")
+    wrap.appendChild(el("p","muted","لك أن تترك الكل بلا شرط حاسم — الانفتاح ليس عيباً."));
+  app.appendChild(wrap);
 }
 
 function render(){
   if (!state.started) return renderWelcome();
   if (state.finished) return renderDone();
+  if (state.phase) return renderPrioritize();
   return renderChat();
 }
 
@@ -1107,6 +1642,483 @@ function excelBlob(rows){
   ]);
 }
 
+/* ============================================================
+   v1.1 — «المرآة» (تعرف على نفسك) + بطاقة التعريف القابلة للمشاركة
+   Track A throwaway. لا يخرج شيء من الجهاز إلا بضغطة المستخدم.
+   ============================================================ */
+
+const IMP_W = { "شرط حاسم":8, "أساسي":5, "مفضل":3, "يُستحسن":1, "لا يهم":0 };
+
+const DOMAINS = [
+  { id:"deen",    label:"الدين والالتزام",     ids:["rPrayer","rFajr","rQuran","rLookM","rLookF","rWedding"] },
+  { id:"akhlaq",  label:"الأخلاق والعادات",     ids:["rTobacco","rIntox","rJewelry","rTattoo","rSocial","rConflict","rHumour"] },
+  { id:"usra",    label:"الحياة الأسرية والبيت", ids:["rMarital","rMaritalF","rKids","rLiving","rReadiness","rWantKids","rInlaws",
+                                                     "rCooking","rCleaning","rChildcare","rHomeHelp"] },
+  { id:"eduWork", label:"التعليم والعمل",       ids:["rEdu","rWork","rWifeWork","rLanguage","rCar","rClub","rReading","rHobbies"] },
+  { id:"mazhar",  label:"المظهر والصحة",        ids:["rAge","rHeight","rWeight","rSkin","rHealth","rNat"] },
+  { id:"madi",    label:"الوضع المادي",         ids:["rFin","rFinModel"] },
+];
+const DOMAIN_OF = (() => { const m={}; for (const d of DOMAINS) for (const i of d.ids) m[i]=d.id; return m; })();
+
+/* وسم النسخة التجريبية لا يظهر لصاحب البطاقة ولا في مرآته */
+const clean = (s) => String(s || "").replace(/\s*\(قيد التجربة\)\s*/g, "").trim();
+
+const REQ_SEC = () => SECTIONS.find(s => s.id === "reqs");
+const fieldById = (id) => { for (const s of SECTIONS) { const f = s.fields.find(x=>x.id===id); if (f) return f; } return null; };
+const A = (id) => state.answers[id];
+
+/* القيمة المختارة لمعيار الطلب (المدى يُعرض كنطاق) */
+function reqValue(id){
+  const f = fieldById(id);
+  if (f && f.t === "range"){
+    const lo = state.answers[id+"_min"], hi = state.answers[id+"_max"];
+    return (lo==null||hi==null) ? "" : `من ${lo} إلى ${hi}`;
+  }
+  const v = state.answers[id];
+  if (Array.isArray(v)) return v.join("، ");
+  return (v==null || v==="") ? "" : String(v);
+}
+
+/* كل المعايير الفعّالة مرتبة بالأثقل */
+function activeCriteria(){
+  const out = [];
+  const sec = REQ_SEC(); if (!sec) return out;
+  for (const f of sec.fields){
+    const imp = state.imp[f.id];
+    if (!imp || imp === "لا يهم") continue;
+    const val = reqValue(f.id);
+    if (!val || NO_PREF.has(val)) continue;
+    // «short» تسمية مختصرة للبطاقة والمرآة حين تكون صيغة السؤال طويلة
+    out.push({ id:f.id, label:clean(f.short || f.l), value:clean(val), imp, w:IMP_W[imp] ?? 0,
+               db: imp === "شرط حاسم", domain: DOMAIN_OF[f.id] || "eduWork" });
+  }
+  return out.sort((a,b) => b.w - a.w);
+}
+
+/* وزن كل مجال كنسبة من مجموع الأوزان */
+function domainWeights(){
+  const crit = activeCriteria();
+  const tot = crit.reduce((s,c)=>s+c.w, 0);
+  return DOMAINS.map(d => {
+    const mine = crit.filter(c => c.domain === d.id);
+    return { id:d.id, label:d.label, n:mine.length,
+             w: mine.reduce((s,c)=>s+c.w,0),
+             pct: tot ? Math.round(mine.reduce((s,c)=>s+c.w,0) / tot * 100) : 0 };
+  }).sort((a,b) => b.pct - a.pct);
+}
+
+function ownAge(){
+  const d = A("dob"); if (!d) return null;
+  const t = new Date(d); if (isNaN(t)) return null;
+  return Math.floor((Date.now() - t.getTime()) / (365.25*24*3600*1000));
+}
+
+/* اتساع دائرة البحث — وصف صادق، لا رقم مُوهِم */
+function breadthBand(){
+  const n = dbCount();
+  if (n === 0) return { cls:"b1", text:"منفتحة جداً", note:"لم تضع شرطاً حاسماً واحداً." };
+  if (n <= 3)  return { cls:"b1", text:"واسعة", note:"شروطك الحاسمة قليلة، ودائرة البحث أمامك كبيرة." };
+  if (n <= 5)  return { cls:"b2", text:"متوازنة", note:"عدد معقول من الشروط الحاسمة." };
+  if (n <= 7)  return { cls:"b3", text:"ضيقة", note:"كل شرط حاسم يستبعد فئة كاملة — الدائرة تضيق." };
+  return { cls:"b4", text:"ضيقة جداً", note:"استخدمت كل شروطك الحاسمة الثمانية." };
+}
+
+/* ---- المرآة الهادئة: تُظهر التعارض وتسأل، ولا تحكم ---- */
+function reflections(){
+  const out = [];
+  const crit = activeCriteria();
+  const dbs  = crit.filter(c => c.db);
+  const gender = A("gender");
+  const add = (t, body) => out.push({ t, body });
+
+  // 1) أين يقع ثقل الشروط الحاسمة
+  if (dbs.length >= 3){
+    const inDeen = dbs.filter(c => c.domain === "deen").length;
+    const surface = dbs.filter(c => c.domain === "mazhar" || c.domain === "madi").length;
+    if (inDeen === 0 && surface >= Math.ceil(dbs.length/2))
+      add("تأمّل معنا",
+        "معظم شروطك الحاسمة عن المظهر والحالة المادية، وليس بينها شرط واحد عن الدين أو الخلق. "+
+        "لا حكم علينا في هذا — نعرضه فقط لتتأكد أنه ما تقصده فعلاً.");
+  }
+
+  // 2) الصلاة — أرقّ ما يُقال
+  if (["متقطع","لا أصلي حالياً"].includes(A("prayer")) && A("rPrayer") === "محافظ على الخمس")
+    add("لاحظنا",
+      "تطلب في شريك حياتك محافظةً على الصلاة أعلى من التزامك الحالي. "+
+      "وكثيرون يطلبون من يعينهم على الخير — فإن كان هذا قصدك فلا تُغيّر شيئاً.");
+
+  // 3) التوقيت
+  if (A("rReadiness") === "جاهز قريباً (خلال سنة)" && ["أكثر من سنة","حسب الظروف"].includes(A("readiness")))
+    add("توقيتان متباعدان",
+      "تطلب شريكاً جاهزاً للزواج خلال سنة، وذكرت أن جاهزيتك أنت أبعد من ذلك. "+
+      "تأمّل هل التوقيتان متقاربان بما يكفي.");
+
+  // 4) السكن
+  if (A("rLiving") === "شقة مستقلة ضرورية" && ["قيد التجهيز","سنجهزه بعد الاتفاق"].includes(A("housingReadiness")))
+    add("السكن",
+      "تشترط شقة مستقلة، وسكنك ما زال قيد التجهيز. وهذا شائع جداً — "+
+      "تأكد فقط أن الطرف الآخر سيعرفه من البداية.");
+
+  // 5) التعليم
+  if (["دكتوراه","ماجستير فأعلى"].includes(A("rEdu")) &&
+      ["بدون مؤهل","إعدادي","ثانوي / دبلوم"].includes(A("education")))
+    add("فارق المؤهل",
+      "تطلب مؤهلاً أعلى بكثير من مؤهلك. هذا حقك الكامل، ننبّه فقط أنه يضيّق دائرة البحث كثيراً.");
+
+  // 6) المادي
+  if (A("rFin") === "ممتاز" && ["محدود","متوسط"].includes(A("fin")))
+    add("الوضع المادي",
+      "تطلب وضعاً مادياً ممتازاً، ووضعك الحالي دونه. لا شيء في هذا خطأ — "+
+      "تأكد فقط أنك مستعد لما قد يترتب عليه.");
+
+  // 7) الأولاد
+  if (A("kids") === "نعم" && A("rKids") === "مرفوض تماماً")
+    add("الأولاد",
+      "لديك أولاد، وترفض تماماً وجود أولاد لدى الطرف الآخر. "+
+      "تأمّل: هل هذا ما تريده حقاً، أم أنه يستحق إعادة نظر؟");
+
+  // 8) التدخين — ما لا يقبله في غيره وهو يفعله
+  {
+    const tob = Array.isArray(A("rTobacco")) ? A("rTobacco") : [];
+    const acceptsAny = tob.includes("أقبل أي نوع");
+    const accepts = (k) => acceptsAny || tob.includes(k);
+    const mine = [];
+    if (["أحياناً","مدخن"].includes(A("smoking")) && !accepts("السجائر")) mine.push("السجائر");
+    if (["نادراً","نعم"].includes(A("shisha"))    && !accepts("الشيشة"))  mine.push("الشيشة");
+    if (["نادراً","نعم"].includes(A("vape"))      && !accepts("الفيب"))   mine.push("الفيب");
+    if (tob.length && mine.length)
+      add("التدخين",
+        `ترفض ${mine.join(" و")} في شريك حياتك، وذكرت في إجاباتك أنك تدخّنها.`);
+  }
+
+  // 9) الفارق العمري
+  const age = ownAge();
+  const lo = state.answers["rAge_min"], hi = state.answers["rAge_max"];
+  if (age && lo!=null && hi!=null){
+    if (gender === "ذكر" && hi <= age - 12)
+      add("الفارق العمري",
+        `تطلب من تصغرك بـ ${age - hi} سنة على الأقل. وارد ومقبول، لكنه يضيّق الاختيار كثيراً.`);
+    if (gender === "أنثى" && lo >= age + 15)
+      add("الفارق العمري",
+        `تطلبين من يكبرك بـ ${lo - age} سنة على الأقل. وارد، لكنه يضيّق الاختيار كثيراً.`);
+  }
+
+  // 10) استخدام الشروط الحاسمة
+  if (dbs.length >= DB_CAP)
+    add("كل شروطك حاسمة",
+      "استخدمت شروطك الحاسمة الثمانية كاملة. الشرط الحاسم يستبعد الطرف تماماً مهما كان بقية توافقكما — "+
+      "هل كلها فعلاً مما لا تقبل التنازل عنه؟");
+  else if (dbs.length === 0 && crit.length > 0)
+    add("لا شرط حاسم",
+      "لم تضع أي شرط حاسم. الانفتاح جميل — تأكد فقط أن هناك أموراً لا تقبل التفريط فيها.");
+
+  if (crit.length < MIN_CRITERIA)
+    add("معايير قليلة",
+      `حددت ${crit.length} معياراً فقط، ونحتاج ${MIN_CRITERIA} على الأقل. `+
+      "كلما وضّحت ما يهمك، كان التوافق أدق وأقرب لك.");
+
+  return out;
+}
+
+/* ---- بطاقة التعريف: نموذج واحد يغذّي المعاينة والصورة معاً ---- */
+const yesNo = v => v || "";
+const CARD_ME = [
+  { id:"age",     k:"السن",              on:true,  v:()=> { const a=ownAge(); return a?`${a} سنة`:""; } },
+  { id:"gov",     k:"المحافظة",           on:true,  v:()=> A("resGov") },
+  { id:"city",    k:"المنطقة",            on:false, sens:true, v:()=> A("resCity")===OTHER ? A("resCityOther") : A("resCity") },
+  { id:"nat",     k:"الجنسية",            on:true,  v:()=> A("nat") },
+  { id:"marital", k:"الحالة الاجتماعية",   on:true,  v:()=> A("gender")==="أنثى" ? A("maritalF") : A("marital") },
+  { id:"kids",    k:"الأولاد",            on:true,  v:()=> A("kids")==="نعم" ? `${A("kidsCount")||""}` : (A("kids")==="لا"?"لا يوجد":"") },
+  { id:"edu",     k:"التعليم",            on:true,  v:()=> A("education") },
+  { id:"major",   k:"التخصص",             on:true,  v:()=> A("major")===OTHER ? A("majorOther") : A("major") },
+  { id:"college", k:"الجامعة",            on:false, sens:true, v:()=> A("college")===OTHER ? A("collegeOther") : A("college") },
+  { id:"job",     k:"مجال العمل",          on:true,  v:()=> A("jobField")===OTHER ? A("jobFieldOther") : A("jobField") },
+  { id:"height",  k:"الطول",              on:true,  v:()=> A("height") ? A("height")+" سم" : "" },
+  { id:"weight",  k:"الوزن",              on:false, sens:true, v:()=> A("weight") ? A("weight")+" كجم" : "" },
+  { id:"skin",    k:"لون البشرة",          on:true,  v:()=> A("skin") },
+  { id:"health",  k:"الحالة الصحية",       on:true,  v:()=> A("health") },
+  { id:"hdesc",   k:"تفاصيل الحالة",       on:false, sens:true, v:()=> A("healthDesc") },
+  { id:"prayer",  k:"الصلاة",             on:true,  v:()=> A("prayer") },
+  { id:"look",    k:"المظهر الشرعي",       on:true,  v:()=> A("gender")==="أنثى" ? A("hijab") : A("beard") },
+  { id:"quran",   k:"حفظ القرآن",          on:true,  v:()=> A("quran") },
+  { id:"sharia",  k:"العلوم الشرعية",      on:true,  v:()=> A("sharia") },
+  { id:"smoking", k:"السجائر",            on:true,  v:()=> A("smoking") },
+  { id:"shisha",  k:"الشيشة",             on:true,  v:()=> A("shisha") },
+  { id:"vape",    k:"الفيب",              on:true,  v:()=> A("vape") },
+  { id:"fin",     k:"الوضع المادي",        on:false, sens:true, v:()=> A("fin") },
+  { id:"living",  k:"السكن بعد الزواج",     on:true,  v:()=> A("living") },
+  { id:"housing", k:"جاهزية السكن",        on:false, sens:true, v:()=> A("housingReadiness") },
+  { id:"ready",   k:"جاهزية الزواج",       on:true,  v:()=> A("readiness") },
+  { id:"reloc",   k:"السفر أو الهجرة",     on:true,  v:()=> A("relocation") },
+  { id:"wantKids",k:"الرغبة في الإنجاب",   on:true,  v:()=> A("wantKids") },
+  { id:"kidsWant",k:"عدد الأولاد المتمنى", on:true,  v:()=> A("kidsWanted") },
+  { id:"conflict",k:"عند الخلاف",          on:true,  v:()=> A("conflictStyle") },
+  { id:"humour",  k:"طبعه في المزاح",       on:true,  v:()=> A("humour") },
+  { id:"reading", k:"آخر كتاب أتمه",       on:true,  v:()=> A("reading") },
+  { id:"hobbies", k:"الهوايات",            on:true,  v:()=> Array.isArray(A("hobbies")) ? A("hobbies").join("، ") : "" },
+  { id:"deps",    k:"التزامات أسرية",      on:false, sens:true, v:()=> A("dependents") },
+  { id:"langs",   k:"لغات",               on:true,  v:()=> Array.isArray(A("languages")) ? A("languages").join("، ") : "" },
+  { id:"social",  k:"التواصل الاجتماعي",   on:true,  v:()=> A("socialStyle") },
+];
+
+function cardDefaults(){
+  const inc = {};
+  for (const f of CARD_ME) inc[f.id] = f.on;
+  inc.__want = true;
+  return inc;
+}
+function cardState(){
+  if (!state.card) state.card = { name:"", inc:cardDefaults() };
+  if (!state.card.inc) state.card.inc = cardDefaults();
+  return state.card;
+}
+
+function cardModel(){
+  const cs = cardState();
+  const g = A("gender");
+  const me = CARD_ME
+    .filter(f => cs.inc[f.id])
+    .map(f => ({ k:f.k, v:clean(f.v()) }))
+    .filter(r => r.v);
+  const want = cs.inc.__want
+    ? activeCriteria().filter(c => !!c.value).map(c => ({ k:c.label, v:c.value, db:c.db }))
+    : [];
+  const age = ownAge();
+  return {
+    name: (cs.name || "").trim() || (g === "أنثى" ? "عروس" : "عريس"),
+    subtitle: [ g === "أنثى" ? "تبحث عن زوج" : "يبحث عن زوجة",
+                age ? `${age} سنة` : "", A("resGov") || "" ].filter(Boolean).join(" · "),
+    me, want,
+  };
+}
+
+/* ---- رسم البطاقة كصورة PNG (واتساب) — بلا أي مكتبة خارجية ---- */
+function cardToPNG(){
+  const m = cardModel();
+  const W = 1000, P = 48, LH = 46;
+  const cv = document.createElement("canvas");
+  const ctx = cv.getContext("2d");
+  const F = (sz, b) => `${b?"bold ":""}${sz}px "Segoe UI",Tahoma,Arial,sans-serif`;
+
+  // قياس الارتفاع أولاً
+  let h = 0;
+  h += 150;                                   // الترويسة
+  h += 30 + 44;                               // عنوان «عني»
+  h += m.me.length * LH;
+  if (m.want.length){ h += 40 + 44 + m.want.length * LH; }
+  h += 90;                                    // التذييل
+  cv.width = W; cv.height = h;
+
+  ctx.direction = "rtl";
+  ctx.textAlign = "right";
+  ctx.textBaseline = "middle";
+
+  // الخلفية والإطار
+  ctx.fillStyle = "#FFFDF9"; ctx.fillRect(0,0,W,h);
+  ctx.strokeStyle = "#A8763A"; ctx.lineWidth = 4; ctx.strokeRect(3,3,W-6,h-6);
+
+  // الترويسة
+  const hg = ctx.createLinearGradient(0,0,W,144);
+  hg.addColorStop(0,"#123B2D"); hg.addColorStop(1,"#1D5C46");
+  ctx.fillStyle = hg; ctx.fillRect(3,3,W-6,144);
+  ctx.fillStyle = "#C9973F"; ctx.fillRect(3,144,W-6,3);
+  ctx.fillStyle = "#ffffff";
+  ctx.textAlign = "center";
+  ctx.font = F(46, true); ctx.fillText(m.name, W/2, 62);
+  ctx.font = F(26);       ctx.fillText(m.subtitle, W/2, 112);
+  ctx.textAlign = "right";
+
+  let y = 150;
+  const RX = W - P;                            // حافة النص اليمنى
+  const section = (title) => {
+    y += 30;
+    ctx.fillStyle = "#1D5C46"; ctx.font = F(32, true);
+    ctx.fillText(title, RX, y + 16);
+    y += 44;
+    ctx.strokeStyle = "#A8763A66"; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(P, y-8); ctx.lineTo(RX, y-8); ctx.stroke();
+  };
+  const row = (k, v, db) => {
+    ctx.font = F(24);       ctx.fillStyle = "#6E6459";  ctx.fillText(k, RX, y + LH/2);
+    ctx.font = F(26, true); ctx.fillStyle = "#2B2622";
+    ctx.textAlign = "left";
+    if (db){ ctx.fillStyle = "#A8763A"; ctx.fillText("★", P, y + LH/2); ctx.fillStyle = "#2B2622"; ctx.fillText(v, P + 34, y + LH/2); } else ctx.fillText(v, P, y + LH/2);
+    ctx.textAlign = "right";
+    ctx.strokeStyle = "#F1E9DB"; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(P, y+LH-2); ctx.lineTo(RX, y+LH-2); ctx.stroke();
+    y += LH;
+  };
+
+  section("عني");
+  for (const r of m.me) row(r.k, r.v, false);
+  if (m.want.length){
+    section("ما أبحث عنه");
+    for (const r of m.want) row(r.k, r.v, r.db);
+  }
+
+  // التذييل
+  ctx.fillStyle = "#F6F0E6"; ctx.fillRect(3, h-87, W-6, 84);
+  ctx.fillStyle = "#6E6459"; ctx.font = F(22); ctx.textAlign = "center";
+  ctx.fillText("★ = شرط حاسم لا يقبل التنازل", W/2, h-58);
+  ctx.fillText("بطاقة أعدّها صاحبها بنفسه ليسهّل على من يعينه في البحث", W/2, h-26);
+
+  cv.toBlob(b => {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(b);
+    a.download = "بطاقة-التعريف.png";
+    a.click();
+  }, "image/png");
+}
+
+/* ---- «المرآة» في الشاشة ---- */
+function mirrorBlock(){
+  const box = el("div");
+  const crit = activeCriteria();
+
+  box.appendChild(el("h2", null, "مرآتك — ما الذي تبحث عنه فعلاً؟"));
+
+  if (!crit.length){
+    box.appendChild(el("div", "note", "لم تحدد معايير كافية بعد، فلا نستطيع أن نعرض لك صورة صادقة."));
+    return box;
+  }
+
+  const dw = domainWeights().filter(d => d.pct > 0);
+  const top = dw[0];
+
+  const head = el("div", "headline");
+  head.appendChild(el("div", "k", "أثقل ما في اختيارك"));
+  head.appendChild(el("div", "v", top.label));
+  box.appendChild(head);
+  box.appendChild(el("div", "muted", "هذا ما قالته إجاباتك — لا ما نظن نحن. الترتيب محسوب من درجات الأهمية التي اخترتها بنفسك."));
+
+  dw.forEach((d, i) => {
+    const w = el("div", "dbar d" + Math.min(i+1, 6));
+    const t = el("div", "top");
+    t.appendChild(el("span", null, d.label));
+    t.appendChild(el("span", "muted", d.pct + "٪"));
+    w.appendChild(t);
+    const tr = el("div", "track"); const fi = el("div", "fill");
+    fi.style.width = d.pct + "%"; tr.appendChild(fi); w.appendChild(tr);
+    box.appendChild(w);
+  });
+
+  const dbs = crit.filter(c => c.db);
+  box.appendChild(el("h2", null, `شروطك الحاسمة (${dbs.length})`));
+  if (dbs.length){
+    box.appendChild(el("div", "muted", "من لا يحقق واحداً منها لن يظهر لك إطلاقاً، مهما كان بقية توافقكما."));
+    const chips = el("div", "chips");
+    for (const c of dbs) chips.appendChild(el("span", "chip", `${c.label}: ${c.value}`));
+    box.appendChild(chips);
+  } else {
+    box.appendChild(el("div", "muted", "لم تضع شرطاً حاسماً واحداً."));
+  }
+
+  const b = breadthBand();
+  const bw = el("div", "note");
+  bw.appendChild(el("span", null, "دائرة بحثك: "));
+  bw.appendChild(el("span", "band " + b.cls, b.text));
+  bw.appendChild(el("div", "muted", b.note));
+  box.appendChild(bw);
+
+  const refl = reflections();
+  if (refl.length){
+    box.appendChild(el("h2", null, "وقفة قصيرة مع نفسك"));
+    box.appendChild(el("div", "muted", "لسنا نصحح لك — هذه أمور بدت لنا متقاربة في إجاباتك، وأنت وحدك تعرف قصدك."));
+    for (const r of refl){
+      const d = el("div", "refl");
+      d.appendChild(el("span", "t", r.t));
+      d.appendChild(document.createTextNode(r.body));
+      box.appendChild(d);
+    }
+  }
+  return box;
+}
+
+/* ---- شاشة البطاقة ---- */
+function cardBlock(){
+  const box = el("div", "cardzone");
+  const cs = cardState();
+
+  box.appendChild(el("h2", null, "بطاقة تعريفك"));
+  box.appendChild(el("div", "muted",
+    "صفحة واحدة تعطيها لمن يساعدك في البحث — أمك، أختك، أو من تثق به. "+
+    "أنت تختار ما يظهر فيها، والمعلومات الحساسة مغلقة من البداية."));
+
+  const preview = el("div");
+  const rebuild = () => { preview.replaceChildren(drawCard()); };
+
+  const nameWrap = el("div", "fg noprint");
+  nameWrap.appendChild(el("label", null, "الاسم أو الكنية التي تريد ظهورها (اختياري)"));
+  const nameIn = document.createElement("input");
+  nameIn.type = "text"; nameIn.value = cs.name || "";
+  nameIn.placeholder = "اتركه فارغاً إن شئت — لا يُكتب اسمك";
+  nameIn.addEventListener("input", e => { cs.name = e.target.value; save(); rebuild(); });
+  nameWrap.appendChild(nameIn);
+  box.appendChild(nameWrap);
+
+  box.appendChild(el("div", "muted noprint", "اختر ما يظهر في البطاقة — الحقول ذات الإطار الذهبي حساسة، فكّر قبل إظهارها:"));
+  const tg = el("div", "toggles noprint");
+  const mkTog = (id, label, sens) => {
+    const lab = el("label", sens ? "sens" : null);
+    const cb = document.createElement("input");
+    cb.type = "checkbox"; cb.checked = !!cs.inc[id];
+    cb.addEventListener("change", () => { cs.inc[id] = cb.checked; save(); rebuild(); });
+    lab.appendChild(cb); lab.appendChild(document.createTextNode(label));
+    tg.appendChild(lab);
+  };
+  for (const f of CARD_ME) if ((f.v() || "").trim()) mkTog(f.id, f.k, f.sens);
+  mkTog("__want", "قسم «ما أبحث عنه» كاملاً", false);
+  box.appendChild(tg);
+
+  function drawCard(){
+    const m = cardModel();
+    const c = el("div", "card");
+    const hd = el("div", "chead");
+    hd.appendChild(el("div", "nm", m.name));
+    hd.appendChild(el("div", "sb", m.subtitle));
+    c.appendChild(hd);
+
+    const s1 = el("div", "csec");
+    s1.appendChild(el("h4", null, "عني"));
+    if (!m.me.length) s1.appendChild(el("div", "muted", "لم تختر شيئاً ليظهر."));
+    for (const r of m.me){
+      const row = el("div", "row");
+      row.appendChild(el("span", "k", r.k));
+      row.appendChild(el("span", "v", r.v));
+      s1.appendChild(row);
+    }
+    c.appendChild(s1);
+
+    if (m.want.length){
+      const s2 = el("div", "csec");
+      s2.appendChild(el("h4", null, "ما أبحث عنه"));
+      for (const r of m.want){
+        const row = el("div", r.db ? "row db" : "row");
+        row.appendChild(el("span", "k", r.k));
+        row.appendChild(el("span", "v", r.v));
+        s2.appendChild(row);
+      }
+      c.appendChild(s2);
+    }
+    c.appendChild(el("div", "cfoot", "بطاقة أعدّها صاحبها بنفسه ليسهّل على من يعينه في البحث"));
+    return c;
+  }
+
+  rebuild();
+  box.appendChild(preview);
+
+  const nav = el("div", "nav noprint");
+  const png = el("button", null, "حفظ كصورة (للواتساب) 📷");
+  png.addEventListener("click", cardToPNG);
+  const pr = el("button", "sec", "طباعة أو حفظ PDF 🖨");
+  pr.addEventListener("click", () => window.print());
+  nav.appendChild(png); nav.appendChild(pr);
+  box.appendChild(nav);
+  box.appendChild(el("p", "muted noprint",
+    "الصورة والطباعة يتمّان على جهازك وحده. لا تُرسل البطاقة لأحد إلا أنت بنفسك."));
+  return box;
+}
+
 function renderDone(){
   const total = Object.values(state.timings).reduce((a,b)=>a+b, 0);
   app.replaceChildren();
@@ -1114,47 +2126,45 @@ function renderDone(){
 
   const bas = el("div", "basmala");
   bas.appendChild(el("div", "bism", "الْحَمْدُ لِلَّهِ الَّذِي بِنِعْمَتِهِ تَتِمُّ الصَّالِحَاتُ"));
-  const dv = el("div", "divider"); dv.appendChild(el("span", null, "✿"));
+  const dv = el("div", "divider"); dv.appendChild(el("span", null, "۞"));
   bas.appendChild(dv);
   bas.appendChild(el("div", "dua", "جَزَاكُمُ اللَّهُ خَيْرًا عَلَى وَقْتِكُمْ وَكَرَمِكُمْ"));
   box.appendChild(bas);
 
-  box.appendChild(el("h1", null, "اكتمل الاستبيان"));
-  box.appendChild(el("p", null, `استغرقت تقريباً: ${Math.round(total/60)} دقيقة`));
-  const table = el("table");
-  const head = el("tr"); head.appendChild(el("th", null, "القسم")); head.appendChild(el("th", null, "الوقت بالثواني"));
-  table.appendChild(head);
-  for (const s of SECTIONS){
-    const tr = el("tr");
-    tr.appendChild(el("td", null, s.title));
-    tr.appendChild(el("td", null, String(state.timings[s.id] || 0)));
-    table.appendChild(tr);
-  }
-  box.appendChild(table);
+  box.appendChild(el("h1", "noprint", "اكتمل الاستبيان — وهذه ثمرته"));
+  box.appendChild(el("p", "muted noprint", `استغرقت تقريباً: ${Math.round(total/60)} دقيقة`));
 
-  // Feature D — معاينة توافق توضيحية (تجريبية) + ملخص جاهزية حقيقي
-  box.appendChild(el("h2", null, "معاينة مبدئية"));
+  // أولاً: ما يخصّ صاحب الإجابات — مرآته، ثم بطاقته
+  const mirror = mirrorBlock();
+  mirror.className = "noprint";
+  box.appendChild(mirror);
+  box.appendChild(cardBlock());
+
+  // ما يلي خاص بتجربة النسخة التجريبية فقط
+  const t = el("div", "noprint");
+  t.appendChild(el("h2", null, "معاينة مبدئية"));
   const nCrit = setCriteria(), nDb = dbCount();
   const ready = el("div", "note");
   ready.textContent =
     `حددت ${nCrit} معياراً فعّالاً، منها ${nDb} شرطاً حاسماً.\n` +
     (nCrit >= MIN_CRITERIA ? "✓ لديك معايير كافية لبدء حساب التوافق." : `تحتاج ${MIN_CRITERIA} معايير على الأقل (ينقصك ${MIN_CRITERIA-nCrit}).`) +
     (nDb <= DB_CAP ? "" : "\n⚠ تجاوزت حد الشروط الحاسمة.");
-  box.appendChild(ready);
+  t.appendChild(ready);
+  // أُزيلت «معاينة التوافق مع شريك افتراضي» — رقم توضيحي لا يقابل شخصاً حقيقياً (قرار محمد 2026-07-28)
 
-  const preview = el("div", "preview");
-  const demo = illustrativeScore();
-  preview.appendChild(el("div", null, "توافقك مع شريك افتراضي متوازن (مثال توضيحي فقط):"));
-  if (demo.blocked){
-    preview.appendChild(el("div", "big", "غير متوافق"));
-    preview.appendChild(el("div", "muted", "في المثال لم يتحقق أحد شروطك الحاسمة، لذا لا يظهر هذا الشريك إطلاقاً — هكذا تعمل الشروط الحاسمة."));
-  } else {
-    preview.appendChild(el("div", "big", demo.score + "٪"));
-    preview.appendChild(el("div", "muted", "رقم توضيحي لتقريب الفكرة فقط، وليس تقييماً لشخص حقيقي. التوافق الفعلي يُحسب بين طرفين حقيقيين."));
+  const tbl = el("table");
+  const head = el("tr"); head.appendChild(el("th", null, "القسم")); head.appendChild(el("th", null, "الوقت بالثواني"));
+  tbl.appendChild(head);
+  for (const s of SECTIONS){
+    const tr = el("tr");
+    tr.appendChild(el("td", null, s.title));
+    tr.appendChild(el("td", null, String(state.timings[s.id] || 0)));
+    tbl.appendChild(tr);
   }
-  box.appendChild(preview);
+  t.appendChild(tbl);
+  box.appendChild(t);
 
-  box.appendChild(el("h2", null, "رأيك يهمنا"));
+  box.appendChild(el("h2", "noprint", "رأيك يهمنا"));
 
   const fb = {};
   const addSelect = (key, label, options) => {
@@ -1174,7 +2184,45 @@ function renderDone(){
   addSelect("fatigue", "هل شعرت بالإرهاق أثناء الإجابة؟", ["لا","قليلاً","نعم، كان طويلاً"]);
   addText("confusing", "أي الأقسام كان مربكاً أو غير مفهوم؟");
   addSelect("dealbreakerClear", "هل فهمت الفرق بين شرط حاسم وأساسي؟", ["نعم واضح","إلى حد ما","لا، محتاج شرحاً"]);
+  // مقاييس النسخة 1.1 — هل أعطى الاستبيانُ صاحبَه شيئاً؟
+  addSelect("selfKnowledge", "هل عرّفك هذا الاستبيان على نفسك أكثر؟",
+    ["نعم، انتبهت لأمور لم أكن أنتبه لها","إلى حد ما","لا، لم يضف لي شيئاً"]);
+  addSelect("mirrorFair", "«الوقفة مع نفسك» — كيف وجدتها؟",
+    ["منصفة ومفيدة","مقبولة","شعرت أنها تحكم عليّ"]);
+  addSelect("wouldShare", "هل كنت سترسل بطاقة التعريف لمن يساعدك في البحث فعلاً؟",
+    ["نعم","ربما","لا"]);
+  addText("shareWhy", "ولماذا؟ وما الذي كنت ستحذفه أو تضيفه في البطاقة؟");
   addText("other", "اقتراحات أخرى");
+
+  // إرسال الرأي بضغطة — بلا ملفات ولا خطوات
+  const fbText = () => {
+    const L = {fatigue:"الإرهاق", confusing:"أقسام مربكة", dealbreakerClear:"وضوح الشرط الحاسم",
+               selfKnowledge:"هل عرّفني بنفسي", mirrorFair:"الوقفة مع النفس",
+               wouldShare:"هل كنت سأرسل البطاقة", shareWhy:"ولماذا", other:"اقتراحات"};
+    const lines = ["رأيي في استبيان الزواج (نسخة تجريبية):"];
+    for (const k in L) if (fb[k]) lines.push(`• ${L[k]}: ${fb[k]}`);
+    lines.push(`• الوقت: ${Math.round(total/60)} دقيقة تقريباً`);
+    return lines.join("\n");
+  };
+  const shareWrap = el("div", "fg");
+  const shareNav = el("div", "nav");
+  const wa = el("button", null, "أرسل رأيك عبر واتساب 💬");
+  wa.addEventListener("click", () => {
+    state.feedback = fb; save();
+    window.open("https://wa.me/?text=" + encodeURIComponent(fbText()), "_blank");
+  });
+  const cp = el("button", "sec", "انسخ رأيك 📋");
+  cp.addEventListener("click", async () => {
+    state.feedback = fb; save();
+    try { await navigator.clipboard.writeText(fbText()); cp.textContent = "تم النسخ ✓"; }
+    catch { window.prompt("انسخ النص التالي:", fbText()); }
+  });
+  shareNav.appendChild(wa); shareNav.appendChild(cp);
+  shareWrap.appendChild(shareNav);
+  shareWrap.appendChild(el("div", "help",
+    "يفتح واتساب ومعه رأيك مكتوباً — تختار أنت لمن ترسله، ولا يُرسل شيء تلقائياً. "+
+    "رأيك وحده هو ما يُنسخ، لا إجاباتك."));
+  box.appendChild(shareWrap);
 
   const reviewBtn = el("button", "sec", "مراجعة وتعديل الإجابات");
   reviewBtn.addEventListener("click", () => {
@@ -1198,7 +2246,7 @@ function renderDone(){
   expJson.addEventListener("click", () => {
     state.feedback = fb; save();
     download("spike2a-result.json", "application/json",
-      JSON.stringify({version:"spike2a-v0.6", exportedAt:new Date().toISOString(), totalSeconds:total, ...state}, null, 2));
+      JSON.stringify({version:"spike2a-v1.2", exportedAt:new Date().toISOString(), totalSeconds:total, ...state}, null, 2));
   });
   const expXls = el("button", "sec", "تنزيل كملف إكسل");
   expXls.addEventListener("click", () => {
@@ -1215,7 +2263,7 @@ function renderDone(){
   box.appendChild(el("p", "muted", "ينزل ملف — أرسله لصاحب التجربة. لا يُرسل أي شيء تلقائياً."));
 
   const outro = el("div", "basmala");
-  const dv2 = el("div", "divider"); dv2.appendChild(el("span", null, "✿"));
+  const dv2 = el("div", "divider"); dv2.appendChild(el("span", null, "۞"));
   outro.appendChild(dv2);
   outro.appendChild(el("div", "dua", "بَارَكَ اللَّهُ فِيكُمْ، وَوَفَّقَكُمْ لِلْخَيْرِ حَيْثُ كَانَ، وَيَسَّرَ لَكُمْ أُمُورَكُمْ"));
   box.appendChild(outro);
