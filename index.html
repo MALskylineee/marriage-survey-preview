@@ -125,14 +125,15 @@
   .bubble.bridge::after { content:"۞"; position:absolute; inset-inline-end:.6rem; top:50%;
     transform:translateY(-50%); font-size:2.8rem; opacity:.16; line-height:1; pointer-events:none; }
   .taprow { text-align:left; margin-bottom:.25rem; }
-  .qwrap { animation:rise .34s var(--ease) both; }
-  .qwrap .fg { animation:rise .38s var(--ease) both; }
-  .qwrap .fg:nth-of-type(1){animation-delay:.03s} .qwrap .fg:nth-of-type(2){animation-delay:.08s}
-  .qwrap .fg:nth-of-type(3){animation-delay:.13s} .qwrap .fg:nth-of-type(4){animation-delay:.18s}
-  .qwrap .fg:nth-of-type(5){animation-delay:.23s}
+  /* الحركة عند الانتقال لسؤال جديد فقط — لا مع كل اختيار داخل البطاقة نفسها */
+  .qwrap.anim { animation:rise .34s var(--ease) both; }
+  .qwrap.anim .fg { animation:rise .38s var(--ease) both; }
+  .qwrap.anim .fg:nth-of-type(1){animation-delay:.03s} .qwrap.anim .fg:nth-of-type(2){animation-delay:.08s}
+  .qwrap.anim .fg:nth-of-type(3){animation-delay:.13s} .qwrap.anim .fg:nth-of-type(4){animation-delay:.18s}
+  .qwrap.anim .fg:nth-of-type(5){animation-delay:.23s}
   @keyframes rise { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:none; } }
   @media (prefers-reduced-motion: reduce){
-    .qwrap, .qwrap .fg { animation:none !important; }
+    .qwrap.anim, .qwrap.anim .fg { animation:none !important; }
     .bar > div { transition:none; }
   }
 
@@ -152,6 +153,24 @@
     box-shadow:0 0 0 3px #1D5C461f; }
   textarea { min-height:76px; line-height:1.7; }
   /* صفوف أعمار الأولاد مضغوطة — سبعة صفوف يجب أن تتسع في شاشة واحدة */
+  /* تاريخ الميلاد: ثلاث قوائم — بلا كتابة */
+  .dob { display:flex; gap:.45rem; }
+  .dob select { flex:1; min-width:0; padding-inline-start:.5rem; padding-inline-end:1.7rem;
+    background-position:.55rem calc(50% + 1px), .89rem calc(50% + 1px); }
+
+  /* تكبير الخط وتصغيره — ثابت في الزاوية، متاح دائماً */
+  .fontctl { position:fixed; inset-block-end:.7rem; inset-inline-start:.7rem; z-index:40;
+    display:flex; gap:.3rem; align-items:center; background:var(--paper-3);
+    border:1px solid #E0D6C7; border-radius:var(--r-pill); padding:.25rem .35rem;
+    box-shadow:var(--sh-2); }
+  .fontctl button { background:none; color:var(--green-deep); border:none; box-shadow:none;
+    padding:.2rem .5rem; font-size:1rem; font-weight:700; line-height:1.2; min-width:2rem;
+    border-radius:var(--r-pill); }
+  .fontctl button:hover { background:var(--green-soft); filter:none; box-shadow:none; }
+  .fontctl button:active { transform:none; }
+  .fontctl .lbl { font-size:.78rem; color:var(--ink-soft); padding-inline:.25rem; }
+  @media (max-width:400px){ .fontctl { inset-block-end:.5rem; inset-inline-start:.5rem; } }
+
   .kidrow { display:flex; gap:.5rem; align-items:center; margin-top:.14rem; }
   .kidrow span { min-width:6.5rem; color:var(--ink-soft); }
   .kidrow input { padding:.38rem .6rem; }
@@ -341,11 +360,14 @@ const isWorking = a => a.workStatus === "نعم" || a.workStatusF === "نعم";
 const SECTIONS = [
  {id:"basic", title:"البيانات الأساسية", fields:[
   {id:"gender", t:"select", l:"الجنس", o:["ذكر","أنثى"]},
-  {id:"dob", grp:"who", t:"date", l:"تاريخ الميلاد", h:"التسجيل لمن أتم الثامنة عشرة فقط"},
+  {id:"dob", grp:"who", t:"dob", l:"تاريخ الميلاد", h:"اختر من القوائم — بلا كتابة. التسجيل لمن أتم الثامنة عشرة فقط."},
   {id:"nat", grp:"who", t:"select", l:"الجنسية", o:NATS},
   {id:"languages", grp:"who", t:"multi", l:"لغات تجيدها بخلاف العربية (اختياري)", o:["الإنجليزية","الفرنسية","الألمانية","أخرى"]},
-  {id:"height", grp:"body", t:"slider", l:"الطول بالسنتيمتر", min:100, max:220, unit:"سم", h:"المدى يبدأ من مئة سنتيمتر مراعاةً لأصحاب القامة القصيرة"},
-  {id:"weight", grp:"body", t:"slider", l:"الوزن بالكيلوجرام", min:30, max:200, unit:"كجم", bmi:true},
+  {id:"height", grp:"body", t:"slider", l:"الطول بالسنتيمتر", min:140, max:210, unit:"سم"},
+  {id:"weight", grp:"body", t:"slider", l:"الوزن بالكيلوجرام", min:40, max:150, unit:"كجم", bmi:true},
+  {id:"bodySpecial", grp:"body", t:"select", l:"حالة خاصة بالبنية (قيد التجربة)",
+    o:["لا يوجد","قصر القامة (تقزّم)","سمنة مفرطة"],
+    why:"أفردناها في سؤال مستقل حتى يبقى مدى الطول والوزن طبيعياً للجميع، ولتُذكر الحالة بوضوح وكرامة بدل أن تُستنتج من رقم."},
   {id:"skin", grp:"body", t:"select", l:"لون البشرة", o:["أبيض","قمحي","حنطي","أسمر فاتح","أسمر"]},
   {id:"health", grp:"health", t:"select", l:"الحالة الصحية (قيد التجربة)", o:["سليم تماماً","حالة بسيطة لا تؤثر على الحياة اليومية","مرض مزمن متحكم فيه بالعلاج","مرض مزمن يحتاج رعاية","إعاقة جسدية"], h:"الحالات البسيطة كنظارة طبية أو حساسية موسمية لا تحتاج ذكراً."},
   {id:"healthDesc", grp:"health", t:"text", l:"وصف مختصر للحالة (اختياري)", h:"مثال: سكر، ضغط، ربو...", why:"لا يُطلب منك ذكر التفاصيل، واذكر ما تطمئن إليه فقط.", if:a=>["حالة بسيطة لا تؤثر على الحياة اليومية","مرض مزمن متحكم فيه بالعلاج","مرض مزمن يحتاج رعاية","إعاقة جسدية"].includes(a.health)},
@@ -364,7 +386,7 @@ const SECTIONS = [
   {id:"hijab", grp:"lookF", t:"select", l:"نوع غطاء الرأس", g:"F", o:["منتقبة","خمار / حجاب شرعي كامل","طرحة ساترة للشعر بالكامل","طرحة لا تغطي كل الشعر","غير محجبة"]},
  ]},
  {id:"deen", title:"الدين والالتزام", fields:[
-  {id:"prayer", grp:"salah", t:"select", l:"الالتزام بالصلوات الخمس", o:["محافظ عليها في أوقاتها","أصلي معظمها","متقطع","لا أصلي حالياً"]},
+  {id:"prayer", grp:"salah", t:"select", l:"الالتزام بالصلوات الخمس", o:["محافظ عليها في أوقاتها","أحافظ عليها وقد أؤخر بعضها","أصلي معظمها","متقطع","لا أصلي حالياً"], h:"مثال: «في أوقاتها» أي تؤدّيها في وقتها المحدد، و«أحافظ عليها» أي لا تترك فرضاً وإن تأخّرت."},
   {id:"fajr", grp:"salah", t:"select", l:"صلاة الفجر", o:["في وقتها حاضراً بالمسجد","محافظ عليها في وقتها","أصليها في وقتها غالباً","أصليها بعد الشروق"]},
   {id:"mosque", grp:"salah", t:"select", l:"صلاة الجماعة في المسجد", g:"M", o:["كل الصلوات في المسجد","أغلب الصلوات بالمسجد","الجمعة والفجر غالباً","الجمعة فقط","أحياناً","نادراً"]},
   {id:"ramadan", grp:"siyam", t:"select", l:"صيام رمضان", o:["كاملاً","معظمه","متقطع","لا أصوم"]},
@@ -461,21 +483,51 @@ const SECTIONS = [
   {id:"cleaning", grp:"skl", t:"select", l:"التنظيف وتدبير المنزل", g:"F", o:["أجيده تماماً","جيد","ضعيف"]},
   {id:"childcare", grp:"skl", t:"select", l:"الاستعداد لتربية الأطفال", o:["مستعد وقادر","مستعد مع التعلم","غير مستعد حالياً"]},
   {id:"homeHelp", grp:"skl", t:"select", l:"المشاركة في خدمة المنزل", g:"M", o:["أشارك بالكامل","في بعض الأمور","لا أشارك"]},
-  {id:"car", grp:"skl", t:"select", l:"سيارة خاصة", o:["نعم","لا"]},
-  {id:"club", grp:"skl2", t:"select", l:"اشتراك نادي فعال", o:["نعم","لا"]},
-  {id:"conflictStyle", grp:"skl2", t:"select", l:"عند الخلاف، أقرب شيء لطبعك (قيد التجربة)",
-    o:["أناقش فوراً بهدوء","أحتاج وقتاً ثم أعود للنقاش","أصمت وأنسحب","أحتدّ ثم أهدأ سريعاً"],
+  {id:"car", grp:"skl1b", t:"select", l:"سيارة خاصة", o:["نعم","لا"]},
+  {id:"club", grp:"skl1b", t:"select", l:"اشتراك نادي فعال", o:["نعم","لا"]},
+    {id:"conflictStyle", grp:"skl2", t:"select", l:"عند الخلاف، أقرب شيء لطبعك (قيد التجربة)",
+    o:["أناقش فوراً بهدوء حتى نصل لحل",
+       "أحتاج وقتاً أهدأ فيه ثم أعود للنقاش",
+       "أتنازل سريعاً حتى ينتهي الخلاف",
+       "أصمت وأنسحب دون كلام",
+       "أقاطع وأمتنع عن الحديث أياماً",
+       "أحتدّ وأرفع صوتي ثم أهدأ سريعاً",
+       "أتمسّك برأيي ولا أتراجع غالباً",
+       "أحمل في نفسي ولا أقول ما أزعجني",
+       "ألجأ لأهلي أو من أثق به",
+       "يختلف تماماً باختلاف الموقف"],
+    h:"لا توجد إجابة مثالية هنا — وأصدق إجابة هي أنفعها لك.",
     why:"أسلوب الخلاف من أكثر ما يؤثر في استقرار البيت — وأكثر ما يُكتشف بعد فوات الأوان."},
-  {id:"socialStyle", grp:"skl2", t:"select", l:"التواصل الاجتماعي", o:["اجتماعي جداً","متوسط","هادئ / انطوائي"]},
-  {id:"humour", grp:"skl2", t:"select", l:"طبعك في المزاح (قيد التجربة)",
+  {id:"conflictRepair", grp:"skl2", t:"select", l:"وبعد الخلاف، متى تعود المياه لمجاريها؟ (قيد التجربة)",
+    o:["في ساعات وأبادر أنا بالصلح",
+       "في ساعات لكن أنتظر الطرف الآخر",
+       "يوم أو يومان",
+       "أيام، وأحتاج من يصلح بيننا",
+       "قد يطول كثيراً"]},
+  {id:"humour", grp:"skl3", t:"select", l:"طبعك في المزاح (قيد التجربة)",
     o:["أُكثر من المزاح","أمزح في وقته","جاد غالباً مع بعض المرح","جاد بطبعي"],
-    why:"لا نسأل «هل أنت خفيف الظل؟» لأن الكل سيقول نعم — نسأل عن طبعك، والجدّية طبع محترم كالمرح."},
+    h:"مثال: في جلسة الأهل — أنت من يُضحك الناس؟ أم من يبتسم ويستمع؟", why:"لا نسأل «هل أنت خفيف الظل؟» لأن الكل سيقول نعم — نسأل عن طبعك، والجدّية طبع محترم كالمرح."},
+  {id:"socialStyle", grp:"skl3", t:"select", l:"التواصل الاجتماعي",
+    o:["اجتماعي جداً وأحب الزيارات والضيوف",
+       "اجتماعي في حدود الأهل والأصدقاء المقرّبين",
+       "متوسط — حسب المناسبة",
+       "أميل للهدوء وقلة الاختلاط",
+       "أفضّل البيت والدائرة الضيقة جداً"]},
+  {id:"orderStyle", grp:"skl4", t:"select", l:"التنظيم والمواعيد (قيد التجربة)",
+    o:["منظّم دقيق وألتزم بالمواعيد",
+       "منظّم في المهم ومرن فيما دونه",
+       "عفوي، أمشي مع اليوم كما يأتي",
+       "أجد صعوبة في الالتزام بالمواعيد"],
+    h:"مثال: المواعيد وترتيب البيت وتخطيط المصروف."},
+  {id:"spendStyle", grp:"skl4", t:"select", l:"طبعك في الإنفاق (قيد التجربة)",
+    o:["مدبّر وأدّخر أولاً","وسط — أوازن","كريم ولا أحسبها كثيراً","أنفق أولاً بأول ولا يبقى شيء"],
+    h:"مثال: هل تضع ميزانية للشهر، أم تنفق حسب الحاجة؟"},
   {id:"reading", grp:"mind", t:"select", l:"آخر كتاب أتممته (قيد التجربة)",
     o:["خلال هذا الشهر","خلال هذه السنة","منذ سنوات","لا أقرأ الكتب عادةً"],
     why:"نسأل عن آخر مرة فعلتها لا عن حبك لها — فذلك أصدق وأسهل عليك."},
   {id:"curiosity", grp:"mind", t:"select", l:"حين تواجه أمراً جديداً لا تعرفه (قيد التجربة)",
     o:["أبحث وأقرأ حتى أفهمه","أسأل من له خبرة","أجرّب بنفسي وأتعلم بالخطأ","أتركه لأهله"],
-    why:"لا نسأل عن الذكاء — لا أحد يصف نفسه بغير الذكاء. نسأل كيف تتصرف، وكل إجابة هنا محترمة."},
+    h:"مثال: عطل جهاز في البيت، أو ورقة رسمية لا تعرف إجراءاتها.", why:"لا نسأل عن الذكاء — لا أحد يصف نفسه بغير الذكاء. نسأل كيف تتصرف، وكل إجابة هنا محترمة."},
   {id:"hobbies", grp:"hobby", t:"multi", l:"هواياتك واهتماماتك (اختر ما شئت)",
     o:["الرياضة","القراءة","السفر","الطبخ","الأعمال اليدوية","التقنية والبرمجة","الكتابة","الرسم والفنون","رحلات برية أو صيد","ألعاب إلكترونية","متابعة الرياضة","العمل التطوعي","أخرى"]},
  ]},
@@ -486,6 +538,8 @@ const SECTIONS = [
   {id:"rNat", grp:"rbody", t:"select", l:"الجنسية", o:["لا يهم","مصري(ة) فقط","عربي(ة)"], req:1},
   {id:"rSkin", grp:"rbody", t:"select", l:"لون البشرة", o:["لا يهم","أبيض","قمحي","حنطي","أسمر فاتح","أسمر"], req:1},
   {id:"rHealth", grp:"rbody", t:"select", l:"الحالة الصحية", o:["سليم تماماً فقط","أقبل الحالات البسيطة","أقبل مرضاً مزمناً متحكماً فيه","لا يهم"], req:1},
+  {id:"rBodySpecial", grp:"rbody", t:"select", l:"الحالات الخاصة بالبنية (قيد التجربة)", short:"البنية",
+    o:["لا يهم","أقبل قصر القامة","أقبل السمنة المفرطة","أقبل الاثنتين","أفضّل بنية معتادة"], req:1},
   {id:"rLookM", grp:"rlook", t:"select", l:"نوع الحجاب المطلوب (قيد التجربة)", short:"الحجاب المطلوب", g:"M", o:["منتقبة","خمار فأكثر","حجاب شرعي كامل (يستر ولا يشف ولا يصف) فأكثر","طرحة ساترة للشعر فأكثر","لا يهم"], h:"كل خيار يقبل ما هو أكثر التزاماً منه", req:1},
   {id:"rLookF", grp:"rlook", t:"select", l:"اللحية المطلوبة", g:"F", o:["ملتحي","لحية ولو خفيفة","لا يهم"], req:1},
   {id:"rJewelry", grp:"rlook", t:"select", l:"لبس الذهب أو المجوهرات (قيد التجربة)", short:"الذهب والمجوهرات", g:"F", o:["لا يلبس ذهباً","فضة أو دبلة مقبولة","لا يهم"], req:1},
@@ -516,7 +570,7 @@ const SECTIONS = [
   {id:"rInlaws", grp:"rlife", t:"select", l:"العلاقة بالأهل بعد الزواج (قيد التجربة)", short:"العلاقة بالأهل",
     o:["استقلال قرار الزوجين","المشورة مقبولة","لا يهم"], req:1},
   {id:"rConflict", grp:"rchar", t:"select", l:"أسلوب الخلاف المقبول (قيد التجربة)", short:"أسلوب الخلاف",
-    o:["يناقش بهدوء","يقبل التأجيل ثم النقاش","لا يهم"], req:1},
+    o:["يناقش بهدوء ولا يرفع صوته","يقبل التأجيل ثم يعود للنقاش","المهم ألا يطول الخصام","لا يهم"], req:1},
   {id:"rSocial", grp:"rchar", t:"select", l:"التواصل الاجتماعي", o:["اجتماعي جداً","متوسط","هادئ","لا يهم"], req:1},
   {id:"rHumour", grp:"rchar", t:"select", l:"طبع شريكك في المزاح (قيد التجربة)", short:"المزاح",
     o:["أحب المرح","متوسط","أفضّل الجدية","لا يهم"], req:1},
@@ -537,8 +591,58 @@ const SECTIONS = [
    حالة قديمة قد تحمل صفاتٍ حُذفت (rSmoke، rDriving) فتُحسب ضمن الشروط الحاسمة
    وهي غير معروضة أصلاً — فيمتلئ الحد الأقصى بشروطٍ لا يراها صاحبها. */
 const LS_KEY = "spike2a_v16";
+let lastAnimatedStep = null;
+
+/* ── حجم الخط: يكبّره من يحتاج، ويُحفظ على الجهاز ── */
+const FS_KEY = "spike2a_fontsize";
+const FS_MIN = 16, FS_MAX = 24, FS_STEP = 2;
+function applyFontSize(px){
+  const v = Math.min(FS_MAX, Math.max(FS_MIN, px|0));
+  document.documentElement.style.fontSize = v + "px";
+  try { localStorage.setItem(FS_KEY, String(v)); } catch {}
+  const lbl = document.querySelector(".fontctl .lbl");
+  if (lbl) lbl.textContent = Math.round(v / FS_MIN * 100) + "٪";
+  return v;
+}
+function currentFontSize(){
+  const raw = parseInt(localStorage.getItem(FS_KEY) || "", 10);
+  return isNaN(raw) ? FS_MIN : Math.min(FS_MAX, Math.max(FS_MIN, raw));
+}
+function buildFontControl(){
+  const box = document.createElement("div");
+  box.className = "fontctl noprint";
+  const mk = (txt, title, delta) => {
+    const b = document.createElement("button");
+    b.type = "button"; b.textContent = txt; b.title = title;
+    b.addEventListener("click", () => applyFontSize(currentFontSize() + delta));
+    return b;
+  };
+  box.appendChild(mk("ﺃ−", "تصغير الخط", -FS_STEP));
+  const lbl = document.createElement("span");
+  lbl.className = "lbl";
+  box.appendChild(lbl);
+  box.appendChild(mk("ﺃ+", "تكبير الخط", +FS_STEP));
+  document.body.appendChild(box);
+  applyFontSize(currentFontSize());
+}
+
+/* ── شروط حاسمة مجمّعة: عدة صفات متقاربة تُحسب شرطاً واحداً ──
+   طلب محمد: الذهب والوشم والتدخين والكحول والمخدرات يمكن أن تكون
+   شرطاً حاسماً واحداً من الثمانية، لا أربعة تلتهم نصف الحد. */
+const DB_BUNDLES = [
+  { id:"vices", label:"الممنوعات والمظهر",
+    members:["rTobacco","rIntox","rJewelry","rTattoo"],
+    note:"التدخين والكحول والمخدرات والذهب والوشم — تُحسب شرطاً واحداً" }
+];
+const bundleOf = (id) => DB_BUNDLES.find(b => b.members.includes(id)) || null;
 let state = { answers:{}, imp:{}, section:0, timings:{}, enteredAt:Date.now(), startedAt:Date.now(), feedback:{}, started:false, finished:false, stepKey:null };
-try { const saved = JSON.parse(localStorage.getItem(LS_KEY)); if (saved && confirm("لديك إجابات محفوظة، هل تريد المتابعة من حيث توقفت؟")) state = saved; else localStorage.removeItem(LS_KEY); } catch {}
+/* الإجاباتُ المحفوظة تُحمَّل دائماً، ويُسأل صاحبها في صفحةٍ هادئة لا في نافذة نظام.
+   القديم كان يحذف كل إجاباته بمجرّد ضغطة «لا» على نافذةٍ تظهر قبل أن يرى الصفحة. */
+let askResume = false;
+try {
+  const saved = JSON.parse(localStorage.getItem(LS_KEY));
+  if (saved && saved.started){ state = saved; askResume = true; }
+} catch {}
 
 const app = document.getElementById("app");
 const genderOf = () => state.answers.gender;
@@ -552,7 +656,20 @@ const impOfVisibleReqs = () => {
   const sec = SECTIONS.find(s => s.id === "reqs");
   return sec ? visibleFields(sec).map(f => state.imp[f.id]) : [];
 };
-const dbCount = () => impOfVisibleReqs().filter(v => v === "شرط حاسم").length;
+/* الشروط الحاسمة المعروضة الآن، وكل حزمة منها تُعدّ واحداً */
+function dbUnits(){
+  const sec = SECTIONS.find(s => s.id === "reqs");
+  if (!sec) return [];
+  const ids = visibleFields(sec).filter(f => state.imp[f.id] === "شرط حاسم").map(f => f.id);
+  const units = [], seen = new Set();
+  for (const id of ids){
+    const b = bundleOf(id);
+    if (b){ if (!seen.has(b.id)){ seen.add(b.id); units.push(b.id); } }
+    else units.push(id);
+  }
+  return units;
+}
+const dbCount = () => dbUnits().length;
 const setCriteria = () => impOfVisibleReqs().filter(v => v && v !== "لا يهم").length;
 const kidsN = () => { const c = state.answers.kidsCount || ""; return Math.min(parseInt(c) || 0, 7); };
 function save(){ localStorage.setItem(LS_KEY, JSON.stringify(state)); }
@@ -856,8 +973,42 @@ function renderOneField(sec, f, dbBox, advance){
     });
     wrap.appendChild(r); wrap.appendChild(readout); fg.appendChild(wrap);
     if (f.bmi){ const hint = el("div", "hint", bmiText()); hint.id = "bmiHint"; fg.appendChild(hint); }
-  } else if (f.t === "date"){
-    fg.appendChild(makeInput("date", state.answers[f.id], {}, onAnswer));
+  } else if (f.t === "dob"){
+    // ثلاث قوائم بدل كتابة التاريخ — أيسر بكثير على من لا يألف لوحة المفاتيح
+    const cur = (state.answers[f.id] || "").split("-");   // YYYY-MM-DD
+    const MONTHS = ["يناير","فبراير","مارس","أبريل","مايو","يونيو",
+                    "يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"];
+    const nowY = new Date().getFullYear();
+    const years = []; for (let y = nowY - 18; y >= nowY - 75; y--) years.push(String(y));
+    const days  = []; for (let d = 1; d <= 31; d++) days.push(String(d));
+    const box = el("div", "dob");
+    const pick = (arr, val, ph, on) => {
+      const sel = el("select");
+      const first = el("option", null, ph); first.value = ""; sel.appendChild(first);
+      arr.forEach((o, idx) => {
+        const opt = el("option", null, o);
+        opt.value = (arr === MONTHS) ? String(idx + 1) : o;
+        if (opt.value === val) opt.selected = true;
+        sel.appendChild(opt);
+      });
+      sel.addEventListener("change", on);
+      return sel;
+    };
+    const pad = n => String(n).padStart(2, "0");
+    const parts = { d: cur[2] ? String(+cur[2]) : "", m: cur[1] ? String(+cur[1]) : "", y: cur[0] || "" };
+    const commit = () => {
+      state.answers[f.id] = (parts.y && parts.m && parts.d)
+        ? `${parts.y}-${pad(parts.m)}-${pad(parts.d)}` : "";
+      clearMissing(); save();
+      const hint = fg.querySelector(".dobAge");
+      if (hint){ const a = ownAge(); hint.textContent = a ? `العمر: ${a} سنة` : ""; }
+    };
+    box.appendChild(pick(days,   parts.d, "اليوم",  e => { parts.d = e.target.value; commit(); }));
+    box.appendChild(pick(MONTHS, parts.m, "الشهر",  e => { parts.m = e.target.value; commit(); }));
+    box.appendChild(pick(years,  parts.y, "السنة",  e => { parts.y = e.target.value; commit(); }));
+    fg.appendChild(box);
+    const a0 = ownAge();
+    fg.appendChild(el("div", "hint dobAge", a0 ? `العمر: ${a0} سنة` : ""));
   } else if (f.t === "text"){
     fg.appendChild(makeInput("text", state.answers[f.id], {}, onAnswer));
   } else if (f.t === "kidages"){
@@ -950,7 +1101,10 @@ const GRP_Q = {
   home:     "وبعد الزواج بإذن الله — أين ستستقران؟",
   ready:    "وجاهزيتك للزواج.",
   skl:      "وشيء عن مهاراتك في الحياة اليومية.",
-  skl2:     "وعن طبعك.",
+  skl1b:    "وأمور عملية صغيرة.",
+  skl2:     "وعند الخلاف — أصدق إجابة أنفعها لك.",
+  skl3:     "وفي معاملة الناس.",
+  skl4:     "وفي تدبير يومك ومالك.",
   mind:     "واهتماماتك.",
   hobby:    "وهواياتك — اختر ما شئت.",
   rmind:    "الاهتمامات وأمور عملية.",
@@ -1026,7 +1180,9 @@ function renderChat(){
   app.appendChild(tagRow);
   const bar=el("div","bar"); const fill=el("div"); fill.style.width=Math.round(idx/steps.length*100)+"%"; bar.appendChild(fill); app.appendChild(bar);
 
-  const wrap = el("div","qwrap");
+  // الحركة مرة واحدة عند الوصول للسؤال، لا كلما أُعيد الرسم بسبب إجابة داخل البطاقة
+  const wrap = el("div", "qwrap" + (lastAnimatedStep === state.stepKey ? "" : " anim"));
+  lastAnimatedStep = state.stepKey;
   const firstOfSec = idx===0 || steps[idx-1].sec.id !== sec.id;
   const hasBridge = firstOfSec && BRIDGES[sec.id];
   if (hasBridge) wrap.appendChild(el("div","bubble bridge", BRIDGES[sec.id]));
@@ -1147,7 +1303,38 @@ function renderPrioritize(){
   };
 
   const pick = el("div","pick");
+
+  /* في شاشة الشروط الحاسمة تُعرض الحزمة رقاقةً واحدة، فتُحسب واحداً من الثمانية.
+     أما في شاشة «الأساسي» فتبقى كل صفة على حدة — لا حدّ هناك. */
+  const bundlesShown = new Set();
+  if (phase === "db"){
+    for (const bun of DB_BUNDLES){
+      const mine = pool.filter(c => bun.members.includes(c.id));
+      if (mine.length < 2) continue;                 // حزمة بصفة واحدة ليست حزمة
+      bundlesShown.add(bun.id);
+      mine.forEach(c => c.__inBundle = true);
+      const b = el("button");
+      b.appendChild(document.createTextNode(bun.label));
+      b.appendChild(el("span","v", mine.map(c => c.label).join(" · ")));
+      const on = () => mine.some(c => isDb(c.id));
+      const sync = () => { b.className = on() ? "on" : ""; };
+      sync();
+      b.addEventListener("click", () => {
+        if (on()) mine.forEach(c => { state.imp[c.id] = "مفضل"; });
+        else {
+          if (dbCount() >= DB_CAP){
+            alert(`وصلت للحد الأقصى: ${ar(DB_CAP)} شروط حاسمة. خفّف شرطاً آخر أولاً.`); return;
+          }
+          mine.forEach(c => { state.imp[c.id] = "شرط حاسم"; });
+        }
+        save(); sync(); paint();
+      });
+      pick.appendChild(b);
+    }
+  }
+
   for (const c of pool){
+    if (c.__inBundle) continue;
     const b = el("button");
     b.appendChild(document.createTextNode(c.label));
     b.appendChild(el("span","v", c.value));
@@ -1200,7 +1387,55 @@ function renderPrioritize(){
   app.appendChild(wrap);
 }
 
+// شاشة العودة — بديلة عن نافذة النظام، ولا تحذف شيئاً إلا بطلبٍ صريح مرتين
+function renderResume(){
+  app.replaceChildren();
+  const box = el("div");
+  const steps = askableSteps();
+  const done = steps.filter(s => s.fields.every(f => isAnswered(f) || f.t === "text")).length;
+
+  box.appendChild(el("h1", null, "أهلاً بعودتك"));
+  box.appendChild(el("p", "muted",
+    `وجدنا إجاباتك المحفوظة على هذا الجهاز (${ar(done)} من ${ar(steps.length)} بطاقة). أين تحب أن تبدأ؟`));
+
+  const opt = (label, help, sec, apply) => {
+    const w = el("div", "fg");
+    const b = el("button", sec ? "sec" : null, label);
+    b.addEventListener("click", () => { apply(); askResume = false; render(); window.scrollTo(0,0); });
+    w.appendChild(b); w.appendChild(el("div", "help", help));
+    box.appendChild(w);
+  };
+
+  opt("المتابعة من حيث توقفت ▶", "يفتح عند أول سؤال لم تجب عنه بعد.", false, () => {
+    state.finished = false; state.phase = null; state.stepKey = resumeStep(state.stepKey);
+  });
+  if (chosenCriteria().length >= MIN_CRITERIA)
+    opt("عرض التقارير (مرآتك وبطاقتك) 📊", "اذهب مباشرةً إلى النتيجة.", true, () => {
+      state.finished = true; state.phase = null;
+    });
+  opt("المراجعة من البداية ✎", "يمرّ بك على كل الأسئلة لتراجع إجاباتك.", true, () => {
+    state.finished = false; state.phase = null; state.stepKey = steps[0].f.id;
+  });
+
+  // الحذف يحتاج ضغطتين — لا يضيع مجهود أحد بضغطةٍ واحدة
+  const wipe = el("div", "fg");
+  const wb = el("button", "sec", "البدء من جديد ومسح إجاباتي");
+  let armed = false;
+  wb.addEventListener("click", () => {
+    if (!armed){ armed = true; wb.textContent = "اضغط مرة أخرى للتأكيد — سيُمسح كل شيء"; wb.style.borderColor = "#D9A79F"; return; }
+    localStorage.removeItem(LS_KEY);
+    state = { answers:{}, imp:{}, section:0, timings:{}, enteredAt:Date.now(), startedAt:Date.now(),
+              feedback:{}, started:false, finished:false, stepKey:null };
+    askResume = false; render(); window.scrollTo(0,0);
+  });
+  wipe.appendChild(wb);
+  wipe.appendChild(el("div", "help", "لا يُمسح شيء إلا بعد تأكيدك مرتين."));
+  box.appendChild(wipe);
+  app.appendChild(box);
+}
+
 function render(){
+  if (askResume) return renderResume();
   if (!state.started) return renderWelcome();
   if (state.finished) return renderDone();
   if (state.phase) return renderPrioritize();
@@ -1655,7 +1890,7 @@ const DOMAINS = [
   { id:"usra",    label:"الحياة الأسرية والبيت", ids:["rMarital","rMaritalF","rKids","rLiving","rReadiness","rWantKids","rInlaws",
                                                      "rCooking","rCleaning","rChildcare","rHomeHelp"] },
   { id:"eduWork", label:"التعليم والعمل",       ids:["rEdu","rWork","rWifeWork","rLanguage","rCar","rClub","rReading","rHobbies"] },
-  { id:"mazhar",  label:"المظهر والصحة",        ids:["rAge","rHeight","rWeight","rSkin","rHealth","rNat"] },
+  { id:"mazhar",  label:"المظهر والصحة",        ids:["rAge","rHeight","rWeight","rSkin","rHealth","rNat","rBodySpecial"] },
   { id:"madi",    label:"الوضع المادي",         ids:["rFin","rFinModel"] },
 ];
 const DOMAIN_OF = (() => { const m={}; for (const d of DOMAINS) for (const i of d.ids) m[i]=d.id; return m; })();
@@ -1836,6 +2071,7 @@ const CARD_ME = [
   { id:"height",  k:"الطول",              on:true,  v:()=> A("height") ? A("height")+" سم" : "" },
   { id:"weight",  k:"الوزن",              on:false, sens:true, v:()=> A("weight") ? A("weight")+" كجم" : "" },
   { id:"skin",    k:"لون البشرة",          on:true,  v:()=> A("skin") },
+  { id:"bodySp",  k:"حالة خاصة بالبنية", on:true,  v:()=> { const x=A("bodySpecial"); return (x && x!=="لا يوجد") ? x : ""; } },
   { id:"health",  k:"الحالة الصحية",       on:true,  v:()=> A("health") },
   { id:"hdesc",   k:"تفاصيل الحالة",       on:false, sens:true, v:()=> A("healthDesc") },
   { id:"prayer",  k:"الصلاة",             on:true,  v:()=> A("prayer") },
@@ -1853,6 +2089,7 @@ const CARD_ME = [
   { id:"wantKids",k:"الرغبة في الإنجاب",   on:true,  v:()=> A("wantKids") },
   { id:"kidsWant",k:"عدد الأولاد المتمنى", on:true,  v:()=> A("kidsWanted") },
   { id:"conflict",k:"عند الخلاف",          on:true,  v:()=> A("conflictStyle") },
+  { id:"repair",  k:"بعد الخلاف",          on:true,  v:()=> A("conflictRepair") },
   { id:"humour",  k:"طبعه في المزاح",       on:true,  v:()=> A("humour") },
   { id:"reading", k:"آخر كتاب أتمه",       on:true,  v:()=> A("reading") },
   { id:"hobbies", k:"الهوايات",            on:true,  v:()=> Array.isArray(A("hobbies")) ? A("hobbies").join("، ") : "" },
@@ -2003,22 +2240,29 @@ function mirrorBlock(){
   });
 
   const dbs = crit.filter(c => c.db);
-  box.appendChild(el("h2", null, `شروطك الحاسمة (${dbs.length})`));
+  // الحزمة تُعرض رقاقة واحدة كما تُحسب واحداً — حتى لا يختلف العدد هنا عن العدّاد
+  box.appendChild(el("h2", null, `شروطك الحاسمة (${ar(dbCount())})`));
   if (dbs.length){
     box.appendChild(el("div", "muted", "من لا يحقق واحداً منها لن يظهر لك إطلاقاً، مهما كان بقية توافقكما."));
     const chips = el("div", "chips");
-    for (const c of dbs) chips.appendChild(el("span", "chip", `${c.label}: ${c.value}`));
+    const doneBundles = new Set();
+    for (const c of dbs){
+      const b = bundleOf(c.id);
+      if (b){
+        if (doneBundles.has(b.id)) continue;
+        doneBundles.add(b.id);
+        const names = dbs.filter(x => b.members.includes(x.id)).map(x => x.label).join(" · ");
+        chips.appendChild(el("span", "chip", `${b.label}: ${names}`));
+      } else {
+        chips.appendChild(el("span", "chip", `${c.label}: ${c.value}`));
+      }
+    }
     box.appendChild(chips);
   } else {
     box.appendChild(el("div", "muted", "لم تضع شرطاً حاسماً واحداً."));
   }
 
-  const b = breadthBand();
-  const bw = el("div", "note");
-  bw.appendChild(el("span", null, "دائرة بحثك: "));
-  bw.appendChild(el("span", "band " + b.cls, b.text));
-  bw.appendChild(el("div", "muted", b.note));
-  box.appendChild(bw);
+  // أُزيلت «دائرة بحثك» — وصفٌ لا يضيف للمستخدم شيئاً (قرار محمد 2026-07-28)
 
   const refl = reflections();
   if (refl.length){
@@ -2271,6 +2515,7 @@ function renderDone(){
   app.appendChild(box);
 }
 
+buildFontControl();
 render();
 </script>
 </body>
