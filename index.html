@@ -85,9 +85,9 @@
     padding:.65rem .85rem; font-size:.95rem; color:var(--ink); margin:.4rem 0;
     white-space:pre-line; line-height:1.75; box-shadow:var(--sh-1); }
 
-  .multi { display:flex; flex-wrap:wrap; gap:.5rem; }
-  .multi label { display:inline-flex; align-items:center; gap:.4rem; font-weight:400;
-    border:1px solid #DFD5C6; border-radius:var(--r-pill); padding:.45rem .85rem; cursor:pointer;
+  .multi { display:flex; flex-wrap:wrap; gap:.4rem; }
+  .multi label { display:inline-flex; align-items:center; gap:.35rem; font-weight:400;
+    border:1px solid #DFD5C6; border-radius:var(--r-pill); padding:.3rem .68rem; cursor:pointer;
     margin:0; background:var(--paper-3); box-shadow:var(--sh-1);
     transition:border-color .2s var(--ease), background .2s var(--ease), transform .12s var(--ease); }
   .multi label:hover { border-color:var(--green); }
@@ -124,6 +124,11 @@
   /* زخرفة عربية خافتة داخل شريط القسم */
   .bubble.bridge::after { content:"۞"; position:absolute; inset-inline-end:.6rem; top:50%;
     transform:translateY(-50%); font-size:2.8rem; opacity:.16; line-height:1; pointer-events:none; }
+  /* عنوان بطاقة فرعي — أخضر فاتح مع شريط جانبي، لا يشبه فقاعة السؤال أبداً */
+  .bubble.sub { background:var(--green-soft); border:1px solid var(--green-line);
+    border-inline-start:4px solid var(--green); border-radius:var(--r-md);
+    color:var(--green-deep); font-weight:700; font-family:var(--font-display);
+    font-size:1.15rem; padding:.65rem .9rem; box-shadow:none; }
   .taprow { text-align:left; margin-bottom:.25rem; }
   /* الحركة عند الانتقال لسؤال جديد فقط — لا مع كل اختيار داخل البطاقة نفسها */
   .qwrap.anim { animation:rise .34s var(--ease) both; }
@@ -203,7 +208,7 @@
   .db.full { background:var(--rose-soft); border-color:#E0B5AE; color:var(--rose); }
 
   /* الأزرار */
-  .nav { display:flex; gap:.7rem; margin-top:1.1rem; }
+  .nav { display:flex; gap:.7rem; margin-top:.85rem; }
   button { font-size:1.02rem; font-family:inherit; font-weight:600; padding:.75rem 1.5rem;
     border:none; border-radius:var(--r-pill); color:#F7F2E9; cursor:pointer;
     background:linear-gradient(160deg,var(--green),var(--green-deep));
@@ -382,12 +387,14 @@ const SECTIONS = [
   {id:"beard", grp:"lookM", t:"select", l:"اللحية", g:"M", o:["ملتحي (لحية سنة)","لحية مهذبة / خفيفة","بدون لحية"]},
   {id:"jewelry", grp:"lookM", t:"select", l:"المجوهرات (قيد التجربة)", g:"M", o:["لا ألبس شيئاً","فضة أو دبلة فقط","ألبس ذهباً"]},
   {id:"tattoo", grp:"lookM", t:"select", l:"الوشم (قيد التجربة)", g:"M", o:["لا يوجد","يوجد (قديم)","يوجد"]},
-  {id:"dressF", grp:"lookF", t:"select", l:"طبيعة الملابس", g:"F", o:["عباية / إسدال (ساتر لا يشف ولا يصف)","واسعة ساترة بدون عباية","محتشمة لكن قد تصف الجسم","ملابس عادية"]},
-  {id:"hijab", grp:"lookF", t:"select", l:"نوع غطاء الرأس", g:"F", o:["منتقبة","خمار / حجاب شرعي كامل","طرحة ساترة للشعر بالكامل","طرحة لا تغطي كل الشعر","غير محجبة"]},
+  {id:"dressF", grp:"lookF", t:"select", l:"طبيعة الملابس", g:"F", o:["عباية سوداء أو إسدال (ساتر لا يشف ولا يصف)","عباية ملوّنة أو مطرزة ساترة","جلباب أو تنورة طويلة مع قميص واسع","واسعة ساترة بدون عباية","بنطلون فضفاض مع قميص طويل ساتر","محتشمة لكن قد تصف الجسم","ملابس عادية"]},
+  {id:"hijab", grp:"lookF", t:"select", l:"نوع غطاء الرأس", g:"F", o:["منتقبة","خمار / حجاب شرعي كامل","طرحة ساترة للشعر بالكامل طويلة","طرحة ساترة للشعر بالكامل","طرحة لا تغطي كل الشعر","غير محجبة"]},
  ]},
  {id:"deen", title:"الدين والالتزام", fields:[
-  {id:"prayer", grp:"salah", t:"select", l:"الالتزام بالصلوات الخمس", o:["محافظ عليها في أوقاتها","أحافظ عليها وقد أؤخر بعضها","أصلي معظمها","متقطع","لا أصلي حالياً"], h:"مثال: «في أوقاتها» أي تؤدّيها في وقتها المحدد، و«أحافظ عليها» أي لا تترك فرضاً وإن تأخّرت."},
-  {id:"fajr", grp:"salah", t:"select", l:"صلاة الفجر", o:["في وقتها حاضراً بالمسجد","محافظ عليها في وقتها","أصليها في وقتها غالباً","أصليها بعد الشروق"]},
+  {id:"prayer", grp:"salah", t:"select", l:"الالتزام بالصلوات الخمس", o:["محافظ عليها في أوقاتها","أحافظ عليها","أصلي معظمها","متقطع","لا أصلي حالياً"], h:"مثال: «في أوقاتها» أي تؤدّيها في وقتها المحدد، و«أحافظ عليها» أي لا تترك فرضاً وإن تأخّرت."},
+  {id:"fajr", grp:"salah", t:"select", l:"صلاة الفجر", o:a=> a.gender==="أنثى"
+    ? ["محافظة عليها في وقتها حاضراً","محافظة عليها في وقتها","أصليها في وقتها غالباً","أصليها بعد الشروق"]
+    : ["في وقتها حاضراً بالمسجد","محافظ عليها في وقتها","أصليها في وقتها غالباً","أصليها بعد الشروق"]},
   {id:"mosque", grp:"salah", t:"select", l:"صلاة الجماعة في المسجد", g:"M", o:["كل الصلوات في المسجد","أغلب الصلوات بالمسجد","الجمعة والفجر غالباً","الجمعة فقط","أحياناً","نادراً"]},
   {id:"ramadan", grp:"siyam", t:"select", l:"صيام رمضان", o:["كاملاً","معظمه","متقطع","لا أصوم"]},
   {id:"nawafilFast", grp:"siyam", t:"select", l:"صيام النوافل", o:["ألتزم بها","أحياناً","لا"]},
@@ -411,7 +418,7 @@ const SECTIONS = [
   {id:"kidsAges", grp:"soc3", t:"kidages", l:"أعمارهم", if:a=>a.kids==="نعم" && !!a.kidsCount},
  ]},
  {id:"edu", title:"التعليم", fields:[
-  {id:"education", t:"select", l:"المستوى التعليمي", o:["بدون مؤهل","إعدادي","ثانوي / دبلوم","مؤهل جامعي (بكالوريوس/ليسانس)","ماجستير","دكتوراه"]},
+  {id:"education", t:"select", l:"المستوى التعليمي", o:["بدون مؤهل","ابتدائي","إعدادي","ثانوي / دبلوم","مؤهل جامعي (بكالوريوس/ليسانس)","ماجستير","دكتوراه"]},
   {id:"major", grp:"study", t:"select", l:"التخصص", o:MAJORS, if:a=>HIGHER_EDU.includes(a.education)},
   {id:"majorOther", grp:"study", t:"text", l:"اذكر التخصص", if:a=>a.major===OTHER},
   {id:"college", grp:"study", t:"select", l:"الجامعة أو المعهد", o:UNIS, if:a=>HIGHER_EDU.includes(a.education)},
@@ -431,7 +438,7 @@ const SECTIONS = [
   {id:"workMode", grp:"jobdetail", t:"select", l:"طبيعة مقر العمل", o:["من المنزل (عن بُعد)","من مقر العمل","مختلط (بيت + مقر)","ميداني / متنقل"], if:isWorking},
   {id:"workSched", grp:"jobdetail", t:"select", l:"مواعيد العمل", o:["صباحي ثابت","مسائي","شيفتات متغيرة","ساعات مرنة"], if:isWorking},
   {id:"workMix", grp:"jobdetail", t:"select", l:"هل بيئة العمل مختلطة؟", o:["لا، منفصلة","نعم، مختلطة","اختلاط محدود"], if:isWorking},
-  {id:"workAfter", grp:"money", t:"select", l:"هل ترغبين في العمل بعد الزواج؟", g:"F", o:["نعم بالتأكيد","نعم لكن بشروط","حسب الظروف والاتفاق مع الزوج","أفضل عدم العمل"]},
+  {id:"workAfter", grp:"money", t:"select", l:"هل ترغبين في العمل بعد الزواج؟", g:"F", o:["نعم بالتأكيد","نعم لكن بشروط","حسب الظروف والاتفاق مع الزوج","أفضل عدم العمل","لا قطعاً"]},
   {id:"fin", grp:"money", t:"select", l:"الوضع المادي الشخصي", o:["ممتاز","جيد","متوسط","محدود"]},
   {id:"famFin", grp:"money", t:"select", l:"الوضع المادي للأسرة", o:["ممتاز","جيد","متوسط","محدود"]},
  ]},
@@ -483,6 +490,28 @@ const SECTIONS = [
   {id:"cleaning", grp:"skl", t:"select", l:"التنظيف وتدبير المنزل", g:"F", o:["أجيده تماماً","جيد","ضعيف"]},
   {id:"childcare", grp:"skl", t:"select", l:"الاستعداد لتربية الأطفال", o:["مستعد وقادر","مستعد مع التعلم","غير مستعد حالياً"]},
   {id:"homeHelp", grp:"skl", t:"select", l:"المشاركة في خدمة المنزل", g:"M", o:["أشارك بالكامل","في بعض الأمور","لا أشارك"]},
+  {id:"wifeDutiesView", g:"F", t:"multi", l:"أيّ هذه ترينها من عملك في البيت؟ (قيد التجربة)",
+    o:["الطبخ","تنظيف المنزل وترتيبه","غسيل الملابس","غسيل الصحون","مسح الأرضيات",
+       "غسيل السجاد والمفروشات","رعاية الأطفال","خدمة الزوج مباشرةً",
+       "رعاية المواشي أو الدواجن إن وُجدت",
+       "لا أرى شيئاً منها واجباً عليّ — على الزوج توفير من يقوم بها"],
+    excl:["لا أرى شيئاً منها واجباً عليّ — على الزوج توفير من يقوم بها"],
+    why:"مسألة خدمة الزوجة في البيت فيها خلاف معروف بين أهل العلم، ولا نُفتي فيها هنا. نسأل عن رأيكِ أنتِ لا غير — فاختلاف التوقعات في هذا من أكثر أسباب الشقاق."},
+  {id:"wifeDutiesDone", g:"F", t:"multi", l:"وما الذي قمتِ به فعلاً في بيت أهلكِ؟ (قيد التجربة)",
+    o:["الطبخ","تنظيف المنزل وترتيبه","غسيل الملابس","غسيل الصحون","مسح الأرضيات",
+       "غسيل السجاد والمفروشات","رعاية إخوة أو أطفال","رعاية مواشي أو دواجن","لم أقم بشيء منها"],
+    excl:["لم أقم بشيء منها"],
+    h:"نسأل عن الواقع لا عن المثال — وكلتا الإجابتين محترمة."},
+  {id:"husbandProvides", g:"M", t:"multi", l:"ما الذي تستطيع توفيره لخدمة البيت على نفقتك؟ (قيد التجربة)",
+    o:["خادمة بدوام كامل","مساعدة بالساعة أو أسبوعياً","مربية للأطفال",
+       "طعام جاهز أو طلب من الخارج","خدمة تنظيف دورية","غسيل الملابس والسجاد خارج البيت",
+       "لا أستطيع توفير شيء من ذلك حالياً"],
+    excl:["لا أستطيع توفير شيء من ذلك حالياً"],
+    h:"المقصود ما يُدفع من مالك أنت، لا من مال الزوجة."},
+  {id:"husbandHelpView", g:"M", t:"select", l:"ورأيك في مشاركة الزوج في عمل البيت؟ (قيد التجربة)",
+    o:["أشارك بنفسي وأراه من حسن العشرة","أشارك بما أستطيع",
+       "أساعد أحياناً عند الحاجة","أرى أن عمل البيت شأن الزوجة"],
+    why:"سُئلت عائشة رضي الله عنها: ما كان النبي صلى الله عليه وسلم يصنع في بيته؟ قالت: «كان يكون في مِهنةِ أهله» — رواه البخاري (صحيح). نذكره تعريفاً بالهدي لا حكماً، والصياغة موقوفة على مراجعة أهل العلم."},
   {id:"car", grp:"skl1b", t:"select", l:"سيارة خاصة", o:["نعم","لا"]},
   {id:"club", grp:"skl1b", t:"select", l:"اشتراك نادي فعال", o:["نعم","لا"]},
     {id:"conflictStyle", grp:"skl2", t:"select", l:"عند الخلاف، أقرب شيء لطبعك (قيد التجربة)",
@@ -528,8 +557,8 @@ const SECTIONS = [
   {id:"curiosity", grp:"mind", t:"select", l:"حين تواجه أمراً جديداً لا تعرفه (قيد التجربة)",
     o:["أبحث وأقرأ حتى أفهمه","أسأل من له خبرة","أجرّب بنفسي وأتعلم بالخطأ","أتركه لأهله"],
     h:"مثال: عطل جهاز في البيت، أو ورقة رسمية لا تعرف إجراءاتها.", why:"لا نسأل عن الذكاء — لا أحد يصف نفسه بغير الذكاء. نسأل كيف تتصرف، وكل إجابة هنا محترمة."},
-  {id:"hobbies", grp:"hobby", t:"multi", l:"هواياتك واهتماماتك (اختر ما شئت)",
-    o:["الرياضة","القراءة","السفر","الطبخ","الأعمال اليدوية","التقنية والبرمجة","الكتابة","الرسم والفنون","رحلات برية أو صيد","ألعاب إلكترونية","متابعة الرياضة","العمل التطوعي","أخرى"]},
+  {id:"hobbies", grp:"hobby", t:"multi", l:"هواياتك واهتماماتك",
+    o:["القراءة","سماع القرآن","الأفلام","الاسترخاء","الأصدقاء","الرياضة","متابعة الرياضة","المشي","ركوب الدراجات","السباحة","السفر","رحلات برية","الطبخ","الزراعة","الحيوانات","أشغال يدوية","التصوير","الرسم","الكتابة","التقنية","ألعاب الذهن","ألعاب إلكترونية","التسوق","التطوع","أخرى"]},
  ]},
  {id:"reqs", title:"مواصفات شريك حياتك", intro:"اختر ما تريده في شريك حياتك، ثم أخبرنا كم يهمك كل أمر. إذا اخترت «لا يهم» أو «غير مشترط» لأي صفة فلن نسألك عن أهميتها. ومعنى درجات الأهمية:\n• شرط حاسم: لا تقبل الزواج بدونه إطلاقاً — ومن لا يحققه يُستبعد تماماً (بحد أقصى ٨ شروط).\n• أساسي: يهمك كثيراً.  • مفضل: تحب توفّره.  • يُستحسن: لطيف لو وُجد.  • لا يهم: لا يؤثر.", fields:[
   {id:"rAge", grp:"rranges", t:"range", l:"العمر المطلوب", min:18, max:70, lo:22, hi:35, req:1},
@@ -547,7 +576,7 @@ const SECTIONS = [
   {id:"rJewelry", grp:"rlook", t:"select", l:"لبس الذهب أو المجوهرات (قيد التجربة)", short:"الذهب والمجوهرات", g:"F", o:["لا يلبس ذهباً","فضة أو دبلة مقبولة","لا يهم"], req:1},
   {id:"rTattoo", grp:"rlook", t:"select", l:"الوشم (قيد التجربة)", g:"F", o:["بدون وشم","مقبول إن كان قديماً","لا يهم"], req:1},
   {id:"rPrayer", grp:"rdeen", t:"select", l:"الالتزام بالصلاة",
-    o:["محافظ عليها في أوقاتها","محافظ عليها ولو تأخّر أحياناً","يصلي معظمها على الأقل","المهم أن يصلي","غير مشترط"],
+    o:["محافظ عليها في أوقاتها","يحافظ عليها","يصلي معظمها على الأقل","المهم أن يصلي","غير مشترط"],
     h:"كل خيار يقبل ما هو أكثر التزاماً منه.", req:1},
   {id:"rFajr", grp:"rdeen", t:"select", l:"صلاة الفجر", o:["في وقتها حاضراً","في وقتها غالباً","غير مشترط"], req:1},
   {id:"rQuran", grp:"rdeen", t:"select", l:"حفظ القرآن", o:["حافظ كاملاً","أجزاء كبيرة","بعض الأجزاء","قصار السور على الأقل","غير مشترط"], req:1},
@@ -555,7 +584,7 @@ const SECTIONS = [
   {id:"rMaritalF", grp:"rsoc", t:"select", l:"الحالات المقبولة", g:"F", o:["أقبل أي حالة","أعزب فقط","أعزب أو مطلق","أعزب أو أرمل","مطلق فقط","أرمل فقط","أقبل متزوجاً (تعدد)"], req:1},
   {id:"rKids", grp:"rsoc", t:"select", l:"قبول وجود أولاد", o:["مرفوض تماماً","مقبول بشروط","مقبول"], req:1,
     if:a=> a.gender==="أنثى" ? a.rMaritalF!=="أعزب فقط" : a.rMarital!=="بكر فقط"},
-  {id:"rEdu", grp:"rwork", t:"select", l:"الحد الأدنى للتعليم", o:["دكتوراه","ماجستير فأعلى","مؤهل جامعي فأعلى","ثانوي فأعلى","غير مهم"], req:1},
+  {id:"rEdu", grp:"rwork", t:"select", l:"الحد الأدنى للتعليم", o:["دكتوراه","ماجستير فأعلى","مؤهل جامعي فأعلى","ثانوي فأعلى","إعدادي فأعلى","غير مهم"], req:1},
   {id:"rWork", grp:"rwork", t:"select", l:"هل يشترط أن يعمل الزوج؟", short:"عمل الزوج", g:"F", o:["نعم","يفضل","غير مشترط"], req:1},
   {id:"rWifeWork", grp:"rwork", t:"select", l:"عمل الزوجة بعد الزواج", short:"عمل الزوجة", g:"M", o:["أفضّل أن تعمل","حسب الاتفاق","أفضّل ألا تعمل","أشترط ألا تعمل"], req:1},
   {id:"rLanguage", grp:"rwork", t:"select", l:"لغة أجنبية مطلوبة", o:["الإنجليزية","أي لغة أجنبية","لا يهم"], req:1},
@@ -578,11 +607,11 @@ const SECTIONS = [
     o:["جاهز عند العقد","يكفي أن يكون قيد التجهيز","مرن — حسب الاتفاق"], req:1},
   {id:"rReadiness", grp:"rlife", t:"select", l:"جاهزية الشريك للزواج",
     o:["جاهز الآن","خلال ٦ أشهر على الأكثر","خلال سنة على الأكثر","لا يهم التوقيت"], req:1},
-  {id:"rWantKids", grp:"rlife", t:"select", l:"رغبة الشريك في الإنجاب (قيد التجربة)", short:"الرغبة في الإنجاب",
+  {id:"rWantKids", grp:"rlife2", t:"select", l:"رغبة الشريك في الإنجاب (قيد التجربة)", short:"الرغبة في الإنجاب",
     o:["يريد الإنجاب","لا يريد الإنجاب","غير مشترط"], req:1},
-  {id:"rInlaws", grp:"rlife", t:"select", l:"العلاقة بالأهل بعد الزواج (قيد التجربة)", short:"العلاقة بالأهل",
+  {id:"rInlaws", grp:"rlife2", t:"select", l:"العلاقة بالأهل بعد الزواج (قيد التجربة)", short:"العلاقة بالأهل",
     o:["استقلال قرار الزوجين","المشورة مقبولة","لا يهم"], req:1},
-  {id:"rConflict", grp:"rchar", t:"multi", l:"ما الذي لا تقبله عند الخلاف؟ (قيد التجربة)", short:"خطوطك الحمراء في الخلاف",
+  {id:"rConflict", grp:"rconf", t:"multi", l:"ما الذي لا تقبله عند الخلاف؟ (قيد التجربة)", short:"خطوطك الحمراء في الخلاف",
     o:["المقاطعة والامتناع عن الحديث أياماً","رفع الصوت والاحتداد","التمسّك بالرأي وعدم التراجع",
        "الصمت والانسحاب دون كلام","الحمل في النفس دون مصارحة","إدخال الأهل في الخلاف",
        "لا شيء مما سبق يزعجني"],
@@ -599,6 +628,8 @@ const SECTIONS = [
   {id:"rClub", grp:"rmind", t:"select", l:"اشتراك نادٍ فعال", o:["يشترط","غير مشترط"], req:1},
   {id:"rCooking", grp:"rskills", t:"select", l:"إجادة الطبخ", g:"M", o:["تجيده","الأساسيات على الأقل","غير مشترط"], req:1},
   {id:"rCleaning", grp:"rskills", t:"select", l:"تدبير المنزل", g:"M", o:["تجيده تماماً","جيد على الأقل","غير مشترط"], req:1},
+  {id:"rHelpProvided", grp:"rskills", g:"F", t:"select", l:"توفير من يعين في عمل البيت (قيد التجربة)", short:"توفير مساعدة في البيت",
+    o:["أشترطه","يُستحسن","لا يهم"], req:1},
   {id:"rHomeHelp", grp:"rskills", t:"select", l:"مشاركة الزوج في خدمة المنزل", g:"F", o:["يشارك بالكامل","في بعض الأمور","غير مشترط"], req:1},
   {id:"rChildcare", grp:"rskills", t:"select", l:"تربية الأطفال", o:["مستعد وقادر","غير مشترط"], req:1},
  ]},
@@ -1057,12 +1088,20 @@ function renderOneField(sec, f, dbBox, advance){
     const readout = el("div", "hint", rangeText(f));
     const pct = v => (v - f.min) / (f.max - f.min) * 100;
     const paint = () => { const lo=+state.answers[loKey], hi=+state.answers[hiKey]; fillseg.style.right=pct(lo)+"%"; fillseg.style.width=Math.max(0,pct(hi)-pct(lo))+"%"; };
+    // المقبضان لا يتقاطعان: كلٌّ يقف عند الآخر بدل أن تُبدَّل القيمتان تحت الإصبع
     const mk = (key) => {
       const r = makeInput("range", state.answers[key], {min:f.min, max:f.max}, ()=>{});
+      r.addEventListener("pointerdown", () => {
+        dual.querySelectorAll("input").forEach(x => x.style.zIndex = "1");
+        r.style.zIndex = "3";
+      });
       r.addEventListener("input", (e) => {
-        state.answers[key] = e.target.value;
-        let lo=+state.answers[loKey], hi=+state.answers[hiKey];
-        if (lo>hi){ [state.answers[loKey],state.answers[hiKey]]=[String(hi),String(lo)]; }
+        let v = +e.target.value;
+        const lo = +state.answers[loKey], hi = +state.answers[hiKey];
+        if (key === loKey) v = Math.min(v, hi);       // الأدنى لا يتجاوز الأعلى
+        else               v = Math.max(v, lo);       // والأعلى لا ينزل تحت الأدنى
+        state.answers[key] = String(v);
+        e.target.value = String(v);                   // ردّ القيمة المقيَّدة للمقبض نفسه
         readout.textContent = rangeText(f); paint(); save();
       });
       return r;
@@ -1142,7 +1181,9 @@ const GRP_Q = {
   rwork:    "التعليم والعمل.",
   rmoney:   "الوضع المادي والزفاف.",
   rhabits:  "العادات.",
-  rlife:    "الحياة بعد الزواج.",
+  rlife:    "السكن والجاهزية.",
+  rlife2:   "الإنجاب والأهل.",
+  rconf:    "خطوطك الحمراء عند الخلاف.",
   rchar:    "الطباع وأمور عملية.",
   rskills:  "مهارات البيت.",
 };
@@ -1213,14 +1254,23 @@ function renderChat(){
   const hasBridge = firstOfSec && BRIDGES[sec.id];
   if (hasBridge) wrap.appendChild(el("div","bubble bridge", BRIDGES[sec.id]));
   // سؤال مفرد: يظهر نصه دائماً. مجموعة: لا نكرّر صوت القسم — الجسر يكفي في أول بطاقة.
+  // عنوان البطاقة يأخذ خلفية مميزة دائماً — رئيسياً كان أو فرعياً — كي لا تُخطئه العين سؤالاً
   if (single) wrap.appendChild(el("div","bubble", fields[0].q || fields[0].l));
-  else if (!hasBridge) wrap.appendChild(el("div","bubble", GRP_Q[step.grp] || sec.title));
+  else if (!hasBridge) wrap.appendChild(el("div","bubble sub", GRP_Q[step.grp] || sec.title));
 
   const err = el("p","error");
   // سؤال واحد ← تقدّم تلقائي؛ مجموعة ← ينتقل بضغطة «التالي» بعد أن يجيب عنها كلها
   for (const f of fields){
     const fg = renderOneField(sec, f, null, single ? () => goNext() : null);
-    if (single){ const lbl = fg.querySelector("label"); if (lbl) lbl.style.display = "none"; }
+    // السؤال ظاهر في الفقاعة، فيُخفى نص العنوان — لكن تبقى ⓘ «لماذا نسأل» في متناوله
+    if (single){
+      const lbl = fg.querySelector("label");
+      if (lbl){
+        const info = lbl.querySelector(".info");
+        if (info){ lbl.textContent = ""; lbl.appendChild(info); lbl.style.marginBottom = ".2rem"; }
+        else lbl.style.display = "none";
+      }
+    }
     wrap.appendChild(fg);
   }
 
@@ -1914,7 +1964,7 @@ const DOMAINS = [
   { id:"deen",    label:"الدين والالتزام",     ids:["rPrayer","rFajr","rQuran","rLookM","rLookF","rCelebration"] },
   { id:"akhlaq",  label:"الأخلاق والعادات",     ids:["rTobacco","rIntox","rJewelry","rTattoo","rSocial","rConflict","rHumour"] },
   { id:"usra",    label:"الحياة الأسرية والبيت", ids:["rMarital","rMaritalF","rKids","rLiving","rHousingReady","rReadiness","rWantKids","rInlaws",
-                                                     "rCooking","rCleaning","rChildcare","rHomeHelp"] },
+                                                     "rCooking","rCleaning","rChildcare","rHomeHelp","rHelpProvided"] },
   { id:"eduWork", label:"التعليم والعمل",       ids:["rEdu","rWork","rWifeWork","rLanguage","rCar","rClub","rReading","rHobbies"] },
   { id:"mazhar",  label:"المظهر والصحة",        ids:["rAge","rHeight","rWeight","rSkin","rHealth","rNat","rBodySpecial"] },
   { id:"madi",    label:"الوضع المادي",         ids:["rFin","rFinModel"] },
@@ -1933,7 +1983,7 @@ function reqValue(id){
   const f = fieldById(id);
   if (f && f.t === "range"){
     const lo = state.answers[id+"_min"], hi = state.answers[id+"_max"];
-    return (lo==null||hi==null) ? "" : `من ${lo} إلى ${hi}`;
+    return (lo==null||hi==null) ? "" : `من ${ar(lo)} إلى ${ar(hi)}`;
   }
   const v = state.answers[id];
   if (Array.isArray(v)) return v.join("، ");
@@ -2084,7 +2134,7 @@ function reflections(){
 /* ---- بطاقة التعريف: نموذج واحد يغذّي المعاينة والصورة معاً ---- */
 const yesNo = v => v || "";
 const CARD_ME = [
-  { id:"age",     k:"السن",              on:true,  v:()=> { const a=ownAge(); return a?`${a} سنة`:""; } },
+  { id:"age",     k:"السن",              on:true,  v:()=> { const a=ownAge(); return a?`${ar(a)} سنة`:""; } },
   { id:"gov",     k:"المحافظة",           on:true,  v:()=> A("resGov") },
   { id:"city",    k:"المنطقة",            on:false, sens:true, v:()=> A("resCity")===OTHER ? A("resCityOther") : A("resCity") },
   { id:"nat",     k:"الجنسية",            on:true,  v:()=> A("nat") },
@@ -2094,8 +2144,8 @@ const CARD_ME = [
   { id:"major",   k:"التخصص",             on:true,  v:()=> A("major")===OTHER ? A("majorOther") : A("major") },
   { id:"college", k:"الجامعة",            on:false, sens:true, v:()=> A("college")===OTHER ? A("collegeOther") : A("college") },
   { id:"job",     k:"مجال العمل",          on:true,  v:()=> A("jobField")===OTHER ? A("jobFieldOther") : A("jobField") },
-  { id:"height",  k:"الطول",              on:true,  v:()=> A("height") ? A("height")+" سم" : "" },
-  { id:"weight",  k:"الوزن",              on:false, sens:true, v:()=> A("weight") ? A("weight")+" كجم" : "" },
+  { id:"height",  k:"الطول",              on:true,  v:()=> A("height") ? ar(A("height"))+" سم" : "" },
+  { id:"weight",  k:"الوزن",              on:false, sens:true, v:()=> A("weight") ? ar(A("weight"))+" كجم" : "" },
   { id:"skin",    k:"لون البشرة",          on:true,  v:()=> A("skin") },
   { id:"bodySp",  k:"حالة خاصة بالبنية", on:true,  v:()=> { const x=A("bodySpecial"); return (x && x!=="لا يوجد") ? x : ""; } },
   { id:"health",  k:"الحالة الصحية",       on:true,  v:()=> A("health") },
@@ -2150,7 +2200,7 @@ function cardModel(){
   return {
     name: (cs.name || "").trim() || (g === "أنثى" ? "عروس" : "عريس"),
     subtitle: [ g === "أنثى" ? "تبحث عن زوج" : "يبحث عن زوجة",
-                age ? `${age} سنة` : "", A("resGov") || "" ].filter(Boolean).join(" · "),
+                age ? `${ar(age)} سنة` : "", A("resGov") || "" ].filter(Boolean).join(" · "),
     me, want,
   };
 }
@@ -2170,7 +2220,12 @@ function cardToPNG(){
   h += m.me.length * LH;
   if (m.want.length){ h += 40 + 44 + m.want.length * LH; }
   h += 90;                                    // التذييل
-  cv.width = W; cv.height = h;
+  // ترسم بدقة مضاعفة ثم تُصغَّر — نص حادّ على شاشات الهواتف بدل صورة مهترئة
+  const S = 3;
+  cv.width = W * S; cv.height = h * S;
+  ctx.scale(S, S);
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
 
   ctx.direction = "rtl";
   ctx.textAlign = "right";
