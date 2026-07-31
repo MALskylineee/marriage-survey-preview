@@ -362,6 +362,12 @@ const JOB_FIELDS = ["الطب والصحة","الهندسة","التعليم و�
 const HIGHER_EDU = ["مؤهل جامعي (بكالوريوس/ليسانس)","ماجستير","دكتوراه"];
 const isWorking = a => a.workStatus === "نعم" || a.workStatusF === "نعم";
 
+// بطاقتا التعريف بموانع الزواج تبقيان مطفأتين حتى يكتب محمد نصّهما ويُقرّه أهل العلم (Q1).
+// تعداد الموانع فتوى، ولا يكتبها الوكيل — راجع CLAUDE.md §10 وADR-0008.
+const MAWANI_TEXT_READY = false;
+const MAWANI_INDIV_TEXT = "";
+const MAWANI_PAIR_TEXT  = "";
+
 const SECTIONS = [
  {id:"basic", title:"البيانات الأساسية", fields:[
   {id:"gender", t:"select", l:"الجنس", o:["ذكر","أنثى"]},
@@ -376,6 +382,21 @@ const SECTIONS = [
   {id:"skin", grp:"body", t:"select", l:"لون البشرة", o:["أبيض","قمحي","حنطي","أسمر فاتح","أسمر"]},
   {id:"health", grp:"health", t:"select", l:"الحالة الصحية (قيد التجربة)", o:["سليم تماماً","حالة بسيطة لا تؤثر على الحياة اليومية","مرض مزمن متحكم فيه بالعلاج","مرض مزمن يحتاج رعاية","إعاقة جسدية"], h:"الحالات البسيطة كنظارة طبية أو حساسية موسمية لا تحتاج ذكراً."},
   {id:"healthDesc", grp:"health", t:"text", l:"وصف مختصر للحالة (اختياري)", h:"مثال: سكر، ضغط، ربو...", why:"لا يُطلب منك ذكر التفاصيل، واذكر ما تطمئن إليه فقط.", if:a=>["حالة بسيطة لا تؤثر على الحياة اليومية","مرض مزمن متحكم فيه بالعلاج","مرض مزمن يحتاج رعاية","إعاقة جسدية"].includes(a.health)},
+  // الصحة النفسية: نسأل عن الأثر والمتابعة لا عن التشخيص — لأن تقدير «درجة» التشخيص
+  // حكم طبي لا يصحّ من غير المختص، ولأن ذكر الاسم وحده يجلب وصماً بلا فائدة.
+  // على بطاقة مستقلة: إجابتها تكشف أسئلة في مجموعة أخرى، فلا تتقدّم البطاقة قبل ظهورها.
+  {id:"mental", grp:null, t:"select", l:"وهل مررتَ بحالة نفسية؟ (قيد التجربة)",
+    q:"وحالتك النفسية — نسأل عنها كما نسأل عن أي حالة صحية، بلا وصم ولا حرج.",
+    o:["لا يوجد","مررتُ بفترة وانتهت","حالة متابَعة ومستقرة","حالة تحتاج رعاية مستمرة"],
+    why:"الصحة النفسية كالصحة الجسدية: ما يهمّ هو أثرها على الحياة وكيف تُدار، لا اسم التشخيص. ولا نطلب منك تشخيصاً ولا نحكم على إجابتك."},
+  {id:"mentalCare", grp:"nafsi", t:"multi", l:"كيف تتابعها؟",
+    o:["متابعة مع طبيب","جلسات نفسية","دعم الأهل","بلا متابعة حالياً"], excl:["بلا متابعة حالياً"],
+    if:a=>!!a.mental && a.mental!=="لا يوجد"},
+  {id:"mentalMed", grp:"nafsi", t:"select", l:"وهل تتناول دواءً؟",
+    o:["دواء منتظم","دواء عند الحاجة","لا أتناول دواء"], if:a=>!!a.mental && a.mental!=="لا يوجد"},
+  {id:"mentalDesc", grp:"nafsi", t:"text", l:"سطر تصفها به (اختياري)",
+    why:"لا يُطلب منك ذكر التفاصيل، واذكر ما تطمئن إليه فقط. ولا يظهر هذا السطر في بطاقتك إلا إن شغّلته بنفسك.",
+    if:a=>!!a.mental && a.mental!=="لا يوجد"},
  ]},
  {id:"residence", title:"محل الإقامة", fields:[
   {id:"resGov", grp:"where", t:"select", l:"محافظة الإقامة", o:GOVS},
@@ -416,6 +437,19 @@ const SECTIONS = [
      return (a.marital||"").startsWith("متزوج") ? ["جميعاً معي في بيت الزوجية",...base] : base;
    }, if:a=>a.kids==="نعم"},
   {id:"kidsAges", grp:"soc3", t:"kidages", l:"أعمارهم", if:a=>a.kids==="نعم" && !!a.kidsCount},
+ ]},
+ // موانع الزواج: نفرّق بين ما يخصّ الشخص وحده (يُسأل هنا) وما لا يظهر إلا بين شخصين
+ // بعينهما (المحرمية والجمع) — وذلك لا يُسأل في ملف فردي، بل يُتحقق منه لاحقاً مع الأهل.
+ // انظر ADR-0008 وdocs/03 الطبقات L1–L4.
+ {id:"mawani", title:"موانع الزواج", fields:[
+  {id:"mawaniIndiv", t:"info", l:"موانع تخصّ الشخص نفسه", body:MAWANI_INDIV_TEXT,
+    if:()=>MAWANI_TEXT_READY},
+  {id:"mawaniPair", t:"info", l:"موانع تظهر بين شخصين بعينهما", body:MAWANI_PAIR_TEXT,
+    if:()=>MAWANI_TEXT_READY},
+  {id:"iddahEnded", t:"select", g:"F", l:"هل انقضت عدتك؟ (قيد التجربة)",
+    o:["نعم","لا","لست متأكدة"],
+    why:"لا نحسب العدة ولا نفتي في مدتها — تختلف باختلاف الحال، وأنتِ أعلم بها. و«لست متأكدة» إجابة صحيحة تماماً، وموضعها أن تسألي من تثقين بعلمه.",
+    if:a=>["مطلقة","أرملة"].includes(a.maritalF)},
  ]},
  {id:"edu", title:"التعليم", fields:[
   {id:"education", t:"select", l:"المستوى التعليمي", o:["بدون مؤهل","ابتدائي","إعدادي","ثانوي / دبلوم","مؤهل جامعي (بكالوريوس/ليسانس)","ماجستير","دكتوراه"]},
@@ -511,7 +545,7 @@ const SECTIONS = [
   {id:"husbandHelpView", g:"M", t:"select", l:"ورأيك في مشاركة الزوج في عمل البيت؟ (قيد التجربة)",
     o:["أشارك بنفسي وأراه من حسن العشرة","أشارك بما أستطيع",
        "أساعد أحياناً عند الحاجة","أرى أن عمل البيت شأن الزوجة"],
-    why:"سُئلت عائشة رضي الله عنها: ما كان النبي صلى الله عليه وسلم يصنع في بيته؟ قالت: «كان يكون في مِهنةِ أهله» — رواه البخاري (صحيح). نذكره تعريفاً بالهدي لا حكماً، والصياغة موقوفة على مراجعة أهل العلم."},
+    why:"مسألة عمل البيت ومشاركة الزوج فيه ممّا يختلف فيه أهل العلم، ولا نُفتي فيها هنا. نسأل عن رأيك أنت لا غير — فاختلاف التوقعات في هذا من أكثر أسباب الشقاق."},
   {id:"car", grp:"skl1b", t:"select", l:"سيارة خاصة", o:["نعم","لا"]},
   {id:"club", grp:"skl1b", t:"select", l:"اشتراك نادي فعال", o:["نعم","لا"]},
     {id:"conflictStyle", grp:"skl2", t:"select", l:"عند الخلاف، أقرب شيء لطبعك (قيد التجربة)",
@@ -571,6 +605,9 @@ const SECTIONS = [
   {id:"rHealth", grp:"rbody", t:"select", l:"الحالة الصحية", o:["سليم تماماً فقط","أقبل الحالات البسيطة","أقبل مرضاً مزمناً متحكماً فيه","لا يهم"], req:1},
   {id:"rBodySpecial", grp:"rbody", t:"select", l:"الحالات الخاصة بالبنية (قيد التجربة)", short:"البنية",
     o:["لا يهم","أقبل قصر القامة","أقبل السمنة المفرطة","أقبل الاثنتين","أفضّل بنية معتادة"], req:1},
+  {id:"rMental", grp:"rbody2", t:"select", l:"الحالة النفسية (قيد التجربة)", short:"الحالة النفسية",
+    o:["لا يهم","أقبل حالة سابقة انتهت","أقبل حالة متابَعة مستقرة","لا أقبل أي حالة"], req:1,
+    why:"سألناك عنها كما سألناك عن الصحة الجسدية. وصراحتك هنا أرحم من اكتشافٍ متأخر بعد أن تتعلّق القلوب."},
   {id:"rLookM", grp:"rlook", t:"select", l:"نوع الحجاب المطلوب (قيد التجربة)", short:"الحجاب المطلوب", g:"M", o:["منتقبة","خمار فأكثر","حجاب شرعي كامل (يستر ولا يشف ولا يصف) فأكثر","طرحة ساترة للشعر فأكثر","لا يهم"], h:"كل خيار يقبل ما هو أكثر التزاماً منه", req:1},
   {id:"rLookF", grp:"rlook", t:"select", l:"اللحية المطلوبة", g:"F", o:["ملتحي","لحية ولو خفيفة","لا يهم"], req:1},
   {id:"rJewelry", grp:"rlook", t:"select", l:"لبس الذهب أو المجوهرات (قيد التجربة)", short:"الذهب والمجوهرات", g:"F", o:["لا يلبس ذهباً","فضة أو دبلة مقبولة","لا يهم"], req:1},
@@ -638,7 +675,7 @@ const SECTIONS = [
 /* مفتاح التخزين يُرفع مع كل تغيير جوهري في الأسئلة.
    حالة قديمة قد تحمل صفاتٍ حُذفت (rSmoke، rDriving) فتُحسب ضمن الشروط الحاسمة
    وهي غير معروضة أصلاً — فيمتلئ الحد الأقصى بشروطٍ لا يراها صاحبها. */
-const LS_KEY = "spike2a_v16";
+const LS_KEY = "spike2a_v17";
 let lastAnimatedStep = null;
 
 /* ── حجم الخط: يكبّره من يحتاج، ويُحفظ على الجهاز ── */
@@ -800,7 +837,7 @@ function buildLabel(h, w){
   return "ممتلئ";
 }
 
-const RERENDER_ON = new Set(["gender","health","marital","maritalF","kids","kidsCount","education","major","college","workStatus","workStatusF","jobField","finModel","engParty","wedParty","resGov","resCity","wantKids"]);
+const RERENDER_ON = new Set(["gender","health","mental","marital","maritalF","kids","kidsCount","education","major","college","workStatus","workStatusF","jobField","finModel","engParty","wedParty","resGov","resCity","wantKids"]);
 
 // عنصر استيراد قابل لإعادة الاستخدام (شاشة الترحيب وأول قسم)
 function buildImportControl(){
@@ -839,6 +876,7 @@ function buildImportControl(){
 
 // هل أُجيب عن هذا السؤال؟ (المدى يُخزَّن في حقلين)
 function isAnswered(f){
+  if (f.t === "info") return true;   // بطاقة تعريف بلا إدخال — لا تُحسب سؤالاً معلّقاً
   if (f.t === "range") return state.answers[f.id+"_min"] != null && state.answers[f.id+"_max"] != null;
   const v = state.answers[f.id];
   return Array.isArray(v) ? v.length > 0 : (v != null && v !== "");
@@ -994,7 +1032,13 @@ function renderOneField(sec, f, dbBox, advance){
     if (stepSize() !== before){ render(); return; }
     if (advance) advance(); else render();
   };
-  if (f.t === "select"){
+  if (f.t === "info"){
+    // بطاقة تعريف: نصّ يُقرأ ولا يُجاب عنه. ينتقل بضغطة «التالي».
+    const body = el("div", "help");
+    body.style.whiteSpace = "pre-line";
+    body.textContent = f.body || "";
+    fg.appendChild(body);
+  } else if (f.t === "select"){
     const opts = f.pnts ? [...optsOf(f), PNTS] : optsOf(f);
     fg.appendChild(makeSelect(opts, state.answers[f.id], onAnswer));
   } else if (f.t === "multi"){
@@ -1127,6 +1171,7 @@ const BRIDGES = {
   social: "نتكلّم قليلاً عن وضعك الاجتماعي.",
   edu: "وعن تعليمك ودراستك.",
   habits: "أسئلة سريعة عن عاداتك اليومية.",
+  mawani: "وقبل أن نمضي — أمرٌ يخصّ صحة الزواج نفسه.",
   work: "عن عملك ووضعك المادي — بلا حرج.",
   wedding: "نصل إلى جزء مهم: رؤيتك للترتيبات المادية والزفاف.",
   afterMarriage: "وبعد الزواج بإذن الله — كيف تتخيّل حياتكما؟",
@@ -1139,6 +1184,7 @@ const GRP_Q = {
   who:      "نبدأ بالتعريف بك.",
   body:     "لمحة عن مظهرك العام.",
   health:   "وحالتك الصحية — بلا تفاصيل تُحرجك.",
+  nafsi:    "وكيف تُدار — هذا وحده ما يهمّ.",
   where:    "أين تقيم؟",
   soc1:     "نتكلّم قليلاً عن وضعك الاجتماعي.",
   soc2:     "وعن أولادك.",
@@ -1175,6 +1221,7 @@ const GRP_Q = {
   rmind:    "الاهتمامات وأمور عملية.",
   rranges:  "النطاقات التي تقبلها.",
   rbody:    "المظهر العام والصحة.",
+  rbody2:   "والصحة النفسية.",
   rlook:    "اللبس والمظهر.",
   rdeen:    "الجانب الديني.",
   rsoc:     "الحالة الاجتماعية.",
@@ -1210,6 +1257,7 @@ function askableSteps(){
 }
 
 function fieldError(f){
+  if (f.t === "info") return null;
   if (f.t === "text") return null;
   if (f.t === "multi"){
     if (!f.req) return null;                       // الاختيارات المتعددة الاختيارية (كاللغات) تبقى بلا إلزام
@@ -1966,7 +2014,7 @@ const DOMAINS = [
   { id:"usra",    label:"الحياة الأسرية والبيت", ids:["rMarital","rMaritalF","rKids","rLiving","rHousingReady","rReadiness","rWantKids","rInlaws",
                                                      "rCooking","rCleaning","rChildcare","rHomeHelp","rHelpProvided"] },
   { id:"eduWork", label:"التعليم والعمل",       ids:["rEdu","rWork","rWifeWork","rLanguage","rCar","rClub","rReading","rHobbies"] },
-  { id:"mazhar",  label:"المظهر والصحة",        ids:["rAge","rHeight","rWeight","rSkin","rHealth","rNat","rBodySpecial"] },
+  { id:"mazhar",  label:"المظهر والصحة",        ids:["rAge","rHeight","rWeight","rSkin","rHealth","rMental","rNat","rBodySpecial"] },
   { id:"madi",    label:"الوضع المادي",         ids:["rFin","rFinModel"] },
 ];
 const DOMAIN_OF = (() => { const m={}; for (const d of DOMAINS) for (const i of d.ids) m[i]=d.id; return m; })();
@@ -2139,6 +2187,7 @@ const CARD_ME = [
   { id:"city",    k:"المنطقة",            on:false, sens:true, v:()=> A("resCity")===OTHER ? A("resCityOther") : A("resCity") },
   { id:"nat",     k:"الجنسية",            on:true,  v:()=> A("nat") },
   { id:"marital", k:"الحالة الاجتماعية",   on:true,  v:()=> A("gender")==="أنثى" ? A("maritalF") : A("marital") },
+  { id:"iddah",   k:"انقضاء العدة",        on:true,  v:()=> A("iddahEnded") },
   { id:"kids",    k:"الأولاد",            on:true,  v:()=> A("kids")==="نعم" ? `${A("kidsCount")||""}` : (A("kids")==="لا"?"لا يوجد":"") },
   { id:"edu",     k:"التعليم",            on:true,  v:()=> A("education") },
   { id:"major",   k:"التخصص",             on:true,  v:()=> A("major")===OTHER ? A("majorOther") : A("major") },
@@ -2150,6 +2199,8 @@ const CARD_ME = [
   { id:"bodySp",  k:"حالة خاصة بالبنية", on:true,  v:()=> { const x=A("bodySpecial"); return (x && x!=="لا يوجد") ? x : ""; } },
   { id:"health",  k:"الحالة الصحية",       on:true,  v:()=> A("health") },
   { id:"hdesc",   k:"تفاصيل الحالة",       on:false, sens:true, v:()=> A("healthDesc") },
+  { id:"mental",  k:"الحالة النفسية",       on:false, sens:true, v:()=> A("mental") },
+  { id:"mdesc",   k:"تفاصيل الحالة النفسية", on:false, sens:true, v:()=> A("mentalDesc") },
   { id:"prayer",  k:"الصلاة",             on:true,  v:()=> A("prayer") },
   { id:"look",    k:"المظهر الشرعي",       on:true,  v:()=> A("gender")==="أنثى" ? A("hijab") : A("beard") },
   { id:"quran",   k:"حفظ القرآن",          on:true,  v:()=> A("quran") },
